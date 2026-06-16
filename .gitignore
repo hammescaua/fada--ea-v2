@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Env
+.env
+*.local
+
+# Data / models (versionar via DVC, não git)
+data/raw/
+data/curated/
+mlruns/
+*.parquet
+
+# OS / editores
+.DS_Store
+.idea/
+.vscode/
+
+# Node (frontend, a partir do MVP+)
+node_modules/
+.next/
