@@ -11,6 +11,7 @@ const links = [
   { href: "/farms", label: "Captura de Dados" },
   { href: "/safra", label: "Safra" },
   { href: "/financeiro", label: "Financeiro" },
+  { href: "/adaptive", label: "Inteligência Adaptativa" },
   { href: "/assistant", label: "Assistente" },
 ];
 

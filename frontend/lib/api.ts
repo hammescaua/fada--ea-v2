@@ -368,6 +368,59 @@ export interface CreateProductRequest {
 }
 
 // ---------------------------------------------------------------------------
+// Adaptive Intelligence: farm performance profile & personalized prediction
+// ---------------------------------------------------------------------------
+
+export interface ResidualPoint {
+  harvest_year: number;
+  actual_sc_ha: number;
+  regional_fitted_sc_ha: number;
+  residual_sc_ha: number;
+  residual_pct: number;
+}
+
+export interface FarmProfile {
+  farm_id: number;
+  number_of_cycles: number;
+  bias_percentage: number;
+  mean_relative_residual: number;
+  mean_residual_sc_ha: number;
+  median_residual_sc_ha: number;
+  variance_relative: number;
+  last_updated: string | null;
+  residual_history: ResidualPoint[];
+}
+
+export interface PersonalizedIntelligenceRequest {
+  farm_id: number;
+  season: string;
+}
+
+export interface PersonalizedIntelligence {
+  farm_id: number;
+  municipality_code: number;
+  season: string;
+  harvest_year: number;
+  regional_prediction: {
+    point_sc_ha: number;
+    interval_sc_ha: [number, number];
+  };
+  farm_adjustment: {
+    applied_pct: number;
+    observed_bias_pct: number;
+    n_cycles: number;
+  };
+  personalized_prediction: {
+    point_sc_ha: number;
+    interval_sc_ha: [number, number];
+    scenarios: Scenario[];
+  };
+  confidence_score: number;
+  adaptation_level: string;
+  explanation: string;
+}
+
+// ---------------------------------------------------------------------------
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
@@ -502,6 +555,22 @@ export const api = {
 
   getCropCycleFinancials: (id: number, body: FinancialsRequest) =>
     post<FinancialsRequest, Financials>(`/crop-cycles/${id}/financials`, body),
+
+  // ---- Adaptive Intelligence ----
+  getFarmProfile: (farmId: number) =>
+    get<FarmProfile>(`/farms/${farmId}/performance-profile`),
+
+  recomputeFarmProfile: (farmId: number) =>
+    post<Record<string, never>, FarmProfile>(
+      `/farms/${farmId}/performance-profile/recompute`,
+      {}
+    ),
+
+  personalizedIntelligence: (body: PersonalizedIntelligenceRequest) =>
+    post<PersonalizedIntelligenceRequest, PersonalizedIntelligence>(
+      "/personalized-intelligence",
+      body
+    ),
 
   // ---- Products ----
   getProducts: () => get<Product[]>("/products"),
