@@ -531,11 +531,58 @@ async function patch<TBody, TResp>(path: string, body: TBody): Promise<TResp> {
 }
 
 // ---------------------------------------------------------------------------
+// Field Intelligence + Insights
+// ---------------------------------------------------------------------------
+
+export interface FieldSummary {
+  field_id: number;
+  field_name: string;
+  n_seasons: number;
+  mean_actual_sc_ha: number;
+  bias_vs_region_pct: number;
+  yield_stability_std_pct: number | null;
+  mean_cost_per_ha: number | null;
+  n_seasons_with_cost: number;
+  latest_year: number;
+  latest_actual_sc_ha: number;
+  cost_trend: Record<string, unknown> | null;
+}
+
+export interface FieldAnalytics {
+  farm_id: number;
+  n_fields: number;
+  n_records: number;
+  fields: FieldSummary[];
+}
+
+export interface Insight {
+  type: string;
+  scope: string;
+  field_id: number | null;
+  title: string;
+  detail: string;
+  evidence: Record<string, unknown>;
+  confidence: string;
+}
+
+export interface Insights {
+  farm_id: number;
+  n_insights: number;
+  insights: Insight[];
+  note: string;
+}
+
+// ---------------------------------------------------------------------------
 // Endpoint functions
 // ---------------------------------------------------------------------------
 
 export const api = {
   getMunicipalities: () => get<Municipality[]>("/municipalities"),
+
+  getFieldAnalytics: (farmId: number) =>
+    get<FieldAnalytics>(`/farms/${farmId}/field-analytics`),
+
+  getInsights: (farmId: number) => get<Insights>(`/farms/${farmId}/insights`),
 
   regionalIntelligence: (body: RegionalIntelligenceRequest) =>
     post<RegionalIntelligenceRequest, RegionalIntelligenceResponse>(
