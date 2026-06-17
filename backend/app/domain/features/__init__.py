@@ -4,6 +4,14 @@ Conjunto parcimonioso e cientificamente defensável (ver ADR-0004): mede estress
 hídrico e térmico na janela reprodutiva da soja, mais a chuva total da safra.
 """
 
-from app.domain.features.soybean import SOYBEAN_FEATURE_NAMES, build_soybean_features
+from app.domain.features.soybean import (
+    SOYBEAN_FEATURE_NAMES,
+    build_soybean_features,
+    build_soybean_features_for_windows,
+)
 
-__all__ = ["build_soybean_features", "SOYBEAN_FEATURE_NAMES"]
+__all__ = [
+    "build_soybean_features",
+    "build_soybean_features_for_windows",
+    "SOYBEAN_FEATURE_NAMES",
+]

@@ -36,27 +36,20 @@ def _slice(series: list[DailyWeather], window: tuple) -> list[DailyWeather]:
     return [d for d in series if start <= d.day <= end]
 
 
-def build_soybean_features(
+def build_soybean_features_for_windows(
     series: list[DailyWeather],
     latitude_deg: float,
-    harvest_year: int,
-    calendar: CropCalendar,
+    season_window: tuple,
+    reproductive_window: tuple,
 ) -> dict[str, float]:
-    """Constrói o vetor de features para um município/safra.
+    """Constrói as features dadas janelas explícitas (season e reprodutiva).
 
-    Args:
-        series: série diária cobrindo ao menos a janela da safra.
-        latitude_deg: latitude do município (para ET0 de Hargreaves).
-        harvest_year: ano de colheita (ex.: 2027 para a safra 2026/27).
-        calendar: calendário fenológico da cultura.
-
-    Returns:
-        Dicionário {feature: valor} na ordem de :data:`SOYBEAN_FEATURE_NAMES`.
+    Usado tanto pelo calendário fixo quanto pela fenologia dirigida por data de
+    plantio (GDD), garantindo que as duas vias calculem features de forma idêntica.
     """
-    windows = calendar.windows_for(harvest_year)
-    season = _slice(series, windows.season)
+    season = _slice(series, season_window)
     season = with_hargreaves_et0(season, latitude_deg)
-    reproductive = _slice(season, windows.reproductive)
+    reproductive = _slice(season, reproductive_window)
 
     longest_dry = dry_spells(reproductive, threshold_mm=1.0, min_length=1).longest_days
 
@@ -68,3 +61,26 @@ def build_soybean_features(
         "hot_days_reproductive": float(days_above(reproductive, tmax_threshold=35.0)),
         "precip_total_season_mm": accumulated_rainfall(season),
     }
+
+
+def build_soybean_features(
+    series: list[DailyWeather],
+    latitude_deg: float,
+    harvest_year: int,
+    calendar: CropCalendar,
+) -> dict[str, float]:
+    """Constrói o vetor de features para um município/safra (janela do calendário).
+
+    Args:
+        series: série diária cobrindo ao menos a janela da safra.
+        latitude_deg: latitude do município (para ET0 de Hargreaves).
+        harvest_year: ano de colheita (ex.: 2027 para a safra 2026/27).
+        calendar: calendário fenológico da cultura.
+
+    Returns:
+        Dicionário {feature: valor} na ordem de :data:`SOYBEAN_FEATURE_NAMES`.
+    """
+    windows = calendar.windows_for(harvest_year)
+    return build_soybean_features_for_windows(
+        series, latitude_deg, windows.season, windows.reproductive
+    )

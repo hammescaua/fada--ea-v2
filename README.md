@@ -35,8 +35,17 @@ curl -X POST http://localhost:8000/api/v1/regional-intelligence \
   -d '{"municipality":"Horizontina","uf":"RS","crop":"soja","season":"2026/27"}'
 ```
 
+**Planting Date What-If** — simulação de data de plantio e otimização robusta (ZARC):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/planting-window-optimization \
+  -H 'Content-Type: application/json' \
+  -d '{"municipality":"Horizontina","crop":"soja","season":"2026/27","risk_aversion":0.5}'
+```
+
 Veja:
 - [`docs/MVP_REGIONAL_INTELLIGENCE.md`](docs/MVP_REGIONAL_INTELLIGENCE.md) — a fatia, com resultados reais
+- [`docs/PLANTING_DATE_WHATIF.md`](docs/PLANTING_DATE_WHATIF.md) — What-If de data de plantio
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitetura e decisões técnicas
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — MVP / V1 / V2 / V3
 - [`docs/DOMAIN_MODEL.md`](docs/DOMAIN_MODEL.md) — modelo de domínio e ubiquitous language
@@ -51,10 +60,11 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e ".[ml,dev]"
 
 # (opcional) reconstruir dataset e modelo a partir das fontes públicas:
-python -m pipelines.build_dataset   # IBGE + Open-Meteo/NASA -> data/features
-python -m pipelines.train           # compara Ridge/RF/XGBoost -> data/models (MLflow)
+python -m pipelines.build_dataset        # IBGE + Open-Meteo/NASA -> data/features
+python -m pipelines.train                # compara Ridge/RF/XGBoost -> data/models (MLflow)
+python -m pipelines.build_planting_grid  # grid de data de plantio (fenologia GDD)
 
-pytest                              # 28 testes (domínio + serviço + API)
+pytest                              # 38 testes (domínio + serviço + API)
 uvicorn app.main:app --reload
 # http://localhost:8000/api/v1/health  ·  http://localhost:8000/docs
 ```

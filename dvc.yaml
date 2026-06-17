@@ -26,3 +26,15 @@ stages:
     outs:
       - data/models/soybean_regional_baseline.json:
           cache: false
+
+  build_planting_grid:
+    cmd: cd backend && python -m pipelines.build_planting_grid
+    deps:
+      - backend/pipelines/build_planting_grid.py
+      - backend/app/domain/planting_date
+      - backend/app/domain/features
+    params:
+      - planting_date
+    outs:
+      - data/features/soybean_planting_grid_tres_passos.csv:
+          cache: false

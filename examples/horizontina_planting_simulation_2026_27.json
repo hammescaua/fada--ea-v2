@@ -1,0 +1,47 @@
+{
+  "municipality": "Horizontina",
+  "municipality_code": 4309605,
+  "crop": "soja",
+  "season": "2026/27",
+  "harvest_year": 2027,
+  "requested_planting_date": "2026-11-01",
+  "evaluated_planting_date": "31/10/2026",
+  "snapped_note": "Data encaixada na resolução do grid (10-31).",
+  "within_zarc": true,
+  "phenology": {
+    "r1_begin_flowering": "24/12/2026",
+    "r6_full_seed": "12/02/2027"
+  },
+  "expected_yield_sc_ha": 52.4,
+  "delta_vs_baseline_sc_ha": 0.0,
+  "confidence_interval_sc_ha": [
+    40.7,
+    63.2
+  ],
+  "scenarios": [
+    {
+      "name": "pessimista",
+      "yield_sc_ha": 43.3
+    },
+    {
+      "name": "normal",
+      "yield_sc_ha": 52.4
+    },
+    {
+      "name": "otimista",
+      "yield_sc_ha": 57.5
+    }
+  ],
+  "downside_sc_ha": 43.3,
+  "stability_iqr_sc_ha": 8.4,
+  "risk_score": 47.85,
+  "risk_drivers": {
+    "deficit_reprodutivo_mediano_mm": 66.6,
+    "deficit_reprodutivo_adverso_mm": 184.5,
+    "veranico_adverso_dias": 10.6,
+    "dias_quentes_adversos": 6.6
+  },
+  "n_years": 45,
+  "explanation": "Produtividade esperada 52.4 sc/ha (+0.0 vs data-base regional), com piso de 43.3 sc/ha em anos secos e estabilidade (IQR) de 8.4 sc/ha. Déficit reprodutivo mediano 66.6 mm; veranico adverso 10.6 dias.",
+  "scope_note": "Esta análise captura a dimensão de RISCO CLIMÁTICO da data de plantio (exposição a déficit hídrico, veranico e calor no período reprodutivo), não o potencial produtivo intrínseco (fotoperíodo, radiação, ciclo), que exige dado de campo. Por isso a otimização opera DENTRO da janela ZARC, onde o potencial é tido como adequado, e responde: qual data minimiza o risco climático e maximiza a robustez. Resultados são comparativos (deltas vs data-base), não garantias."
+}

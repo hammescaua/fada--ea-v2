@@ -26,3 +26,14 @@ model:
   alpha: 10.0
   cv: leave-one-year-out
   production_model: ridge_linear   # interpretável (ADR-0006)
+
+planting_date:                     # What-If de data de plantio (ADR-0007/0008)
+  phenology_gdd:                   # base 10 °C, desde o plantio
+    emergence: 110
+    r1: 720
+    r6: 1500
+  grid_step_days: 5
+  grid_start: 10-01
+  grid_end: 12-20
+  risk_aversion: 0.5               # λ do equivalente-certeza
+  baseline_date: 11-01
