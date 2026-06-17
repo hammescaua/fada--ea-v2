@@ -9,6 +9,8 @@ const links = [
   { href: "/planting/simulate", label: "Simular Data de Plantio" },
   { href: "/planting/optimize", label: "Otimizar Janela" },
   { href: "/farms", label: "Captura de Dados" },
+  { href: "/safra", label: "Safra" },
+  { href: "/financeiro", label: "Financeiro" },
   { href: "/assistant", label: "Assistente" },
 ];
 

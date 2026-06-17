@@ -12,6 +12,19 @@ export function formatNumber(value: number, digits = 1): string {
   });
 }
 
+export function formatBRL(
+  value: number | null | undefined,
+  digits = 2
+): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
 export function formatDateBR(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso + (iso.length === 10 ? "T00:00:00" : ""));

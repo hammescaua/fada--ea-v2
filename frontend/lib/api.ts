@@ -238,6 +238,136 @@ export interface YieldObservation {
 }
 
 // ---------------------------------------------------------------------------
+// Digital Twin: crop-cycle detail, agricultural events, financials
+// ---------------------------------------------------------------------------
+
+export type EventType =
+  | "PLANTING"
+  | "BASE_FERTILIZATION"
+  | "TOP_DRESSING"
+  | "HERBICIDE"
+  | "FUNGICIDE"
+  | "INSECTICIDE"
+  | "FOLIAR"
+  | "IRRIGATION"
+  | "HARVEST"
+  | "OTHER";
+
+export interface CropCycleDetail {
+  id: number;
+  field_id: number;
+  crop: string;
+  season: string;
+  harvest_year: number;
+  area_ha: number | null;
+  cultivar: string | null;
+  planned_planting_date: string | null;
+  actual_planting_date: string | null;
+  harvest_date: string | null;
+  actual_yield_sc_ha: number | null;
+  notes: string | null;
+  created_at: string | null;
+}
+
+export interface UpdateCropCycleRequest {
+  area_ha?: number;
+  cultivar?: string;
+  planned_planting_date?: string;
+  actual_planting_date?: string;
+  harvest_date?: string;
+  actual_yield_sc_ha?: number;
+  notes?: string;
+}
+
+export interface AgriculturalEvent {
+  id: number;
+  crop_cycle_id: number;
+  event_type: EventType;
+  event_date: string;
+  product_name: string | null;
+  product_id: number | null;
+  quantity: number | null;
+  unit: string | null;
+  cost: number | null;
+  notes: string | null;
+  created_at: string | null;
+}
+
+export interface CreateAgriculturalEventRequest {
+  event_type: EventType;
+  event_date: string;
+  product_name?: string;
+  product_id?: number;
+  quantity?: number;
+  unit?: string;
+  cost?: number;
+  notes?: string;
+}
+
+export interface CostBreakdown {
+  total_cost: number;
+  area_ha: number;
+  cost_per_hectare: number;
+  cost_per_bag: number | null;
+  yield_sc_ha: number | null;
+  n_applications: number;
+  cost_by_category: Record<string, number>;
+}
+
+export interface FinancialScenario {
+  name: string;
+  yield_sc_ha: number;
+  price_per_bag: number;
+  revenue: number;
+  total_cost: number;
+  profit: number;
+  margin_pct: number;
+  profit_per_hectare: number;
+}
+
+export interface Financials {
+  breakdown: CostBreakdown;
+  price_per_bag: number;
+  break_even_yield_sc_ha: number;
+  yield_source: string;
+  scenarios: FinancialScenario[];
+}
+
+export interface FinancialsRequest {
+  price_per_bag: number;
+}
+
+export type ProductCategory =
+  | "FERTILIZER"
+  | "SEED"
+  | "HERBICIDE"
+  | "FUNGICIDE"
+  | "INSECTICIDE"
+  | "FOLIAR"
+  | "ADJUVANT"
+  | "OTHER";
+
+export interface Product {
+  id: number;
+  category: ProductCategory;
+  commercial_name: string;
+  active_ingredient: string | null;
+  formulation: string | null;
+  unit: string | null;
+  description: string | null;
+  created_at: string | null;
+}
+
+export interface CreateProductRequest {
+  category: ProductCategory;
+  commercial_name: string;
+  active_ingredient?: string;
+  formulation?: string;
+  unit?: string;
+  description?: string;
+}
+
+// ---------------------------------------------------------------------------
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
@@ -278,6 +408,18 @@ async function get<T>(path: string): Promise<T> {
 async function post<TBody, TResp>(path: string, body: TBody): Promise<TResp> {
   const res = await fetch(`${API_V1}${path}`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  return handle<TResp>(res);
+}
+
+async function patch<TBody, TResp>(path: string, body: TBody): Promise<TResp> {
+  const res = await fetch(`${API_V1}${path}`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
@@ -338,4 +480,32 @@ export const api = {
     ),
 
   getYieldObservations: () => get<YieldObservation[]>("/yield-observations"),
+
+  // ---- Digital Twin: crop-cycle / events ----
+  getCropCycle: (id: number) =>
+    get<CropCycleDetail>(`/crop-cycles/${id}`),
+
+  updateCropCycle: (id: number, body: UpdateCropCycleRequest) =>
+    patch<UpdateCropCycleRequest, CropCycleDetail>(`/crop-cycles/${id}`, body),
+
+  getCropCycleEvents: (id: number) =>
+    get<AgriculturalEvent[]>(`/crop-cycles/${id}/events`),
+
+  createCropCycleEvent: (id: number, body: CreateAgriculturalEventRequest) =>
+    post<CreateAgriculturalEventRequest, AgriculturalEvent>(
+      `/crop-cycles/${id}/events`,
+      body
+    ),
+
+  getCropCycleCost: (id: number) =>
+    get<CostBreakdown>(`/crop-cycles/${id}/cost`),
+
+  getCropCycleFinancials: (id: number, body: FinancialsRequest) =>
+    post<FinancialsRequest, Financials>(`/crop-cycles/${id}/financials`, body),
+
+  // ---- Products ----
+  getProducts: () => get<Product[]>("/products"),
+
+  createProduct: (body: CreateProductRequest) =>
+    post<CreateProductRequest, Product>("/products", body),
 };
