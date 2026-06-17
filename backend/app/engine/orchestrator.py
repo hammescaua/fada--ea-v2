@@ -44,6 +44,10 @@ class Intent(str, Enum):
     LEARNED = "learned"
     RELIABILITY = "reliability"
     REGIONAL_VS_PERSONALIZED = "regional_vs_personalized"
+    MODEL_RELIABILITY = "model_reliability"
+    INTERVALS_CALIBRATED = "intervals_calibrated"
+    BIAS_DIRECTION = "bias_direction"
+    PERSONALIZED_BETTER = "personalized_better"
     UNKNOWN = "unknown"
 
 
@@ -52,6 +56,10 @@ COST_INTENTS = frozenset(
 )
 ADAPTIVE_INTENTS = frozenset(
     {Intent.ABOVE_AVERAGE, Intent.LEARNED, Intent.RELIABILITY, Intent.REGIONAL_VS_PERSONALIZED}
+)
+CALIBRATION_INTENTS = frozenset(
+    {Intent.MODEL_RELIABILITY, Intent.INTERVALS_CALIBRATED, Intent.BIAS_DIRECTION,
+     Intent.PERSONALIZED_BETTER}
 )
 
 
@@ -110,6 +118,18 @@ class DeterministicRouter:
         muni = self._municipality(message) or ctx_municipality
         planting = self._planting_date(message, harvest_year)
 
+        # Intenções de calibração (qualidade dos intervalos / do modelo).
+        if re.search(r"calibrad|intervalos?\s+(honest|corret|estao|sao)", n):
+            return Routed(Intent.INTERVALS_CALIBRATED, muni, season, planting)
+        if re.search(r"err\w*\s+(mais\s+)?para\s+(cima|baixo)|super.?prev|sub.?prev|vies", n):
+            return Routed(Intent.BIAS_DIRECTION, muni, season, planting)
+        if re.search(r"personaliz.*(realmente\s+)?melhor|(vale|compensa).*personaliz|"
+                     r"personaliz.*(vale|compensa)", n):
+            return Routed(Intent.PERSONALIZED_BETTER, muni, season, planting)
+        if re.search(r"(confiav|confianc).*(modelo|sistema)|modelo.*(confiav|confianc)|"
+                     r"quao\s+bom\s+(e\s+)?o\s+modelo", n):
+            return Routed(Intent.MODEL_RELIABILITY, muni, season, planting)
+
         # Intenções adaptativas (personalização por fazenda).
         if re.search(r"diferenca.*(regional|personaliz)|regional.*personaliz|"
                      r"personaliz.*regional", n):
@@ -148,6 +168,7 @@ class Orchestrator:
     cost: CostService
     adaptive: AdaptiveService
     router: DeterministicRouter
+    calibration_report: dict | None = None
 
     def handle(
         self, message: str, ctx_municipality: str | None = None,
@@ -160,6 +181,8 @@ class Orchestrator:
             return self._dispatch_cost(r, ctx_crop_cycle_id, ctx_price_per_bag)
         if r.intent in ADAPTIVE_INTENTS:
             return self._dispatch_adaptive(r, ctx_farm_id)
+        if r.intent in CALIBRATION_INTENTS:
+            return self._dispatch_calibration(r)
 
         if r.municipality is None:
             return self._reply(r, None, "Para responder, preciso do município (ex.: Horizontina).")
@@ -204,6 +227,31 @@ class Orchestrator:
             return self._reply(r, None, f"Safra (crop_cycle_id={cycle_id}) não encontrada.")
         except AreaUnknown:
             return self._reply(r, None, "Área desconhecida: informe area_ha na safra ou no talhão.")
+
+    def _dispatch_calibration(self, r: Routed) -> dict:
+        rep = self.calibration_report
+        if rep is None:
+            return self._reply(r, None, "O relatório de calibração ainda não foi computado.")
+        reg, per = rep["regional"], rep["personalized"]
+        if r.intent == Intent.INTERVALS_CALIBRATED:
+            answer = reg["interpretation"]
+        elif r.intent == Intent.MODEL_RELIABILITY:
+            answer = (f"O modelo é {'calibrado' if not reg['overconfident'] else 'overconfident'}: "
+                      f"o IC80 cobriu {reg['coverage_80']:.0%} das safras no backtest "
+                      f"(leave-one-year-out, {reg['n_predictions']} casos), MAE {reg['mae']} sc/ha.")
+        elif r.intent == Intent.BIAS_DIRECTION:
+            b = reg["bias"]
+            d = ("super-prever (errar para cima)" if b > 0 else
+                 "sub-prever (errar para baixo)" if b < 0 else "não tem viés sistemático")
+            answer = (f"Na média, o modelo tende a {d}: viés de {b:+} sc/ha "
+                      f"(MAE {reg['mae']} sc/ha).")
+        else:  # PERSONALIZED_BETTER
+            better = per["mae"] < reg["mae"] and per["pinball"]["mean"] <= reg["pinball"]["mean"]
+            verdict = "Sim" if better else "Não de forma conclusiva"
+            answer = (f"{verdict}: o personalizado tem MAE {per['mae']} vs {reg['mae']} sc/ha e "
+                      f"pinball {per['pinball']['mean']} vs {reg['pinball']['mean']}, mantendo a "
+                      f"calibração (IC80 {per['coverage_80']:.0%}) e sem estreitar o intervalo.")
+        return self._reply(r, {"regional": reg, "personalized": per}, answer)
 
     def _dispatch_adaptive(self, r: Routed, farm_id: int | None) -> dict:
         if farm_id is None:

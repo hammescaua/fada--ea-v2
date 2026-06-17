@@ -38,3 +38,14 @@ stages:
     outs:
       - data/features/soybean_planting_grid_tres_passos.csv:
           cache: false
+
+  backtest_calibration:
+    cmd: cd backend && python -m pipelines.backtest_calibration
+    deps:
+      - backend/pipelines/backtest_calibration.py
+      - backend/app/domain/calibration
+      - data/features/soybean_tres_passos.csv
+      - data/models/soybean_regional_baseline.json
+    outs:
+      - data/models/calibration_report.json:
+          cache: false

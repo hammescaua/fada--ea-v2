@@ -87,3 +87,30 @@ def test_regional_vs_personalized_intent():
     assert ROUTER.route(
         "Qual a diferença entre a previsão regional e a personalizada?", None
     ).intent == Intent.REGIONAL_VS_PERSONALIZED
+
+
+def test_intervals_calibrated_intent():
+    assert ROUTER.route("Os intervalos estão calibrados?", None).intent == \
+        Intent.INTERVALS_CALIBRATED
+
+
+def test_model_reliability_intent():
+    assert ROUTER.route("Quão confiável é o modelo?", None).intent == Intent.MODEL_RELIABILITY
+
+
+def test_bias_direction_intent():
+    assert ROUTER.route(
+        "Ele costuma errar para cima ou para baixo?", None
+    ).intent == Intent.BIAS_DIRECTION
+
+
+def test_personalized_better_intent():
+    assert ROUTER.route("O personalizado é realmente melhor?", None).intent == \
+        Intent.PERSONALIZED_BETTER
+
+
+def test_model_reliability_not_confused_with_farm_reliability():
+    # "personalização" -> reliability adaptativa; "modelo" -> calibração
+    assert ROUTER.route("Quão confiável é essa personalização?", None).intent == \
+        Intent.RELIABILITY
+    assert ROUTER.route("Quão confiável é o modelo?", None).intent == Intent.MODEL_RELIABILITY

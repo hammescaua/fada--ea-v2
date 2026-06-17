@@ -61,6 +61,7 @@ Veja:
 - [`docs/FLYWHEEL_AND_ASSISTANT.md`](docs/FLYWHEEL_AND_ASSISTANT.md) — captura de ground truth + orchestrator
 - [`docs/DIGITAL_TWIN_V1.md`](docs/DIGITAL_TWIN_V1.md) — timeline de eventos + Cost Engine
 - [`docs/ADAPTIVE_INTELLIGENCE.md`](docs/ADAPTIVE_INTELLIGENCE.md) — personalização por fazenda (encolhimento)
+- [`docs/CALIBRATION_AND_RELIABILITY.md`](docs/CALIBRATION_AND_RELIABILITY.md) — os intervalos são honestos?
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitetura e decisões técnicas
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — MVP / V1 / V2 / V3
 - [`docs/DOMAIN_MODEL.md`](docs/DOMAIN_MODEL.md) — modelo de domínio e ubiquitous language

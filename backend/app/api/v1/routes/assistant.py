@@ -13,6 +13,7 @@ from app.infra.db import get_session
 from app.infra.repositories import AdaptiveRepository, EventRepository, FarmRepository
 from app.schemas.assistant import AssistantRequest, AssistantResponse
 from app.services.adaptive import AdaptiveService
+from app.services.calibration import CalibrationUnavailable, load_calibration_report
 from app.services.cost import CostService
 from app.services.regional_intelligence import RegionalIntelligenceService
 
@@ -27,6 +28,10 @@ def get_orchestrator(session: Session = Depends(get_session)) -> Orchestrator:
         raise HTTPException(503, "Modelo/grid ausente.") from exc
     names = [info["name"] for info in model.municipalities().values()]
     farms = FarmRepository(session)
+    try:
+        calib = load_calibration_report()
+    except CalibrationUnavailable:
+        calib = None
     return Orchestrator(
         regional=RegionalIntelligenceService(model=model, explainer=build_explainer()),
         planting=planting,
@@ -35,6 +40,7 @@ def get_orchestrator(session: Session = Depends(get_session)) -> Orchestrator:
             farms=farms, adaptive=AdaptiveRepository(session), model=model
         ),
         router=DeterministicRouter(known_municipalities=names),
+        calibration_report=calib,
     )
 
 
