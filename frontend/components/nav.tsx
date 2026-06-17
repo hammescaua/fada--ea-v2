@@ -12,6 +12,7 @@ const links = [
   { href: "/safra", label: "Safra" },
   { href: "/financeiro", label: "Financeiro" },
   { href: "/adaptive", label: "Inteligência Adaptativa" },
+  { href: "/calibration", label: "Calibração" },
   { href: "/assistant", label: "Assistente" },
 ];
 

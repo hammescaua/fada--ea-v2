@@ -421,6 +421,54 @@ export interface PersonalizedIntelligence {
 }
 
 // ---------------------------------------------------------------------------
+// Calibration: backtest of the regional vs personalized predictors
+// ---------------------------------------------------------------------------
+
+export interface CoverageDetail {
+  nominal: number;
+  observed: number;
+  wilson_low: number;
+  wilson_high: number;
+  verdict: string;
+}
+
+export interface ReliabilityPoint {
+  nominal: number;
+  observed: number;
+  wilson_low: number;
+  wilson_high: number;
+}
+
+export interface CalibrationReport {
+  label: string;
+  n_predictions: number;
+  coverage_50: number;
+  coverage_80: number;
+  coverage_90: number;
+  coverage_95: number;
+  coverage_detail: CoverageDetail[];
+  mean_width: number;
+  median_width: number;
+  relative_width_pct: number;
+  mae: number;
+  rmse: number;
+  bias: number;
+  pinball: Record<string, number>; // keys: p10, p50, p90, mean
+  reliability_curve: ReliabilityPoint[];
+  overconfident: boolean;
+  underconfident: boolean;
+  interpretation: string;
+}
+
+export interface Calibration {
+  method: string;
+  ground_truth: string;
+  note: string;
+  regional: CalibrationReport;
+  personalized: CalibrationReport;
+}
+
+// ---------------------------------------------------------------------------
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
@@ -571,6 +619,9 @@ export const api = {
       "/personalized-intelligence",
       body
     ),
+
+  // ---- Calibration ----
+  getCalibration: () => get<Calibration>("/calibration"),
 
   // ---- Products ----
   getProducts: () => get<Product[]>("/products"),
