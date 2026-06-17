@@ -12,5 +12,19 @@ from app.domain.farm.entities import (
     Season,
     YieldObservation,
 )
+from app.domain.farm.events import (
+    APPLICATION_EVENTS,
+    AgriculturalEvent,
+    EventType,
+)
 
-__all__ = ["Farm", "Field", "Season", "CropCycle", "YieldObservation"]
+__all__ = [
+    "Farm",
+    "Field",
+    "Season",
+    "CropCycle",
+    "YieldObservation",
+    "AgriculturalEvent",
+    "EventType",
+    "APPLICATION_EVENTS",
+]

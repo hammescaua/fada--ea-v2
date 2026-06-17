@@ -51,14 +51,36 @@ class Field:
 
 @dataclass
 class CropCycle:
-    """Um ciclo de cultivo em um talhão (cultura + safra)."""
+    """Uma safra completa em um talhão — raiz do agregado de eventos agrícolas.
+
+    Datas canônicas e produtividade vivem aqui (não nos eventos). Os eventos
+    PLANTING/HARVEST capturam apenas custo/insumos dessas operações (ADR-0011).
+    """
 
     field_id: int
     crop: str
     season: Season
-    planting_date: date | None = None
+    area_ha: float | None = None
+    cultivar: str | None = None
+    planned_planting_date: date | None = None
+    actual_planting_date: date | None = None
+    harvest_date: date | None = None
+    actual_yield_sc_ha: float | None = None
+    notes: str | None = None
     id: int | None = None
     created_at: datetime | None = None
+
+    def __post_init__(self) -> None:
+        if self.area_ha is not None and self.area_ha <= 0:
+            raise ValueError("CropCycle.area_ha deve ser positivo")
+        if self.actual_yield_sc_ha is not None and self.actual_yield_sc_ha < 0:
+            raise ValueError("actual_yield_sc_ha não pode ser negativo")
+        if (
+            self.actual_planting_date
+            and self.harvest_date
+            and self.harvest_date < self.actual_planting_date
+        ):
+            raise ValueError("colheita não pode ser anterior ao plantio")
 
 
 @dataclass

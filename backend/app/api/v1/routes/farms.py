@@ -10,6 +10,7 @@ from app.infra.repositories import FarmRepository
 from app.schemas.farm import (
     CropCycleCreate,
     CropCycleOut,
+    CropCycleUpdate,
     FarmCreate,
     FarmOut,
     FieldCreate,
@@ -29,8 +30,10 @@ def get_service(session: Session = Depends(get_session)) -> FarmService:
 def _cycle_out(c) -> CropCycleOut:
     return CropCycleOut(
         id=c.id, field_id=c.field_id, crop=c.crop, season=c.season.label,
-        harvest_year=c.season.harvest_year, planting_date=c.planting_date,
-        created_at=c.created_at,
+        harvest_year=c.season.harvest_year, area_ha=c.area_ha, cultivar=c.cultivar,
+        planned_planting_date=c.planned_planting_date,
+        actual_planting_date=c.actual_planting_date, harvest_date=c.harvest_date,
+        actual_yield_sc_ha=c.actual_yield_sc_ha, notes=c.notes, created_at=c.created_at,
     )
 
 
@@ -65,9 +68,36 @@ def create_cycle(
     field_id: int, body: CropCycleCreate, svc: FarmService = Depends(get_service)
 ) -> CropCycleOut:
     try:
-        c = svc.create_cycle(field_id, body.crop, body.season, body.planting_date)
+        c = svc.create_cycle(
+            field_id, body.crop, body.season,
+            **body.model_dump(exclude={"crop", "season"}),
+        )
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return _cycle_out(c)
+
+
+@router.get("/crop-cycles/{cycle_id}", response_model=CropCycleOut)
+def get_cycle(cycle_id: int, svc: FarmService = Depends(get_service)) -> CropCycleOut:
+    c = svc.get_cycle(cycle_id)
+    if c is None:
+        raise HTTPException(404, f"CropCycle {cycle_id} inexistente")
+    return _cycle_out(c)
+
+
+@router.patch("/crop-cycles/{cycle_id}", response_model=CropCycleOut)
+def update_cycle(
+    cycle_id: int, body: CropCycleUpdate, svc: FarmService = Depends(get_service)
+) -> CropCycleOut:
+    changes = body.model_dump(exclude_unset=True)
+    try:
+        c = svc.update_cycle(cycle_id, changes)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
     return _cycle_out(c)
 
 

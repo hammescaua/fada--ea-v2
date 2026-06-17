@@ -47,3 +47,21 @@ def test_season_override():
 def test_unknown_intent():
     r = ROUTER.route("bom dia, tudo bem?", "Horizontina")
     assert r.intent == Intent.UNKNOWN
+
+
+def test_cost_total_intent():
+    assert ROUTER.route("Quanto já investi nesta safra?", None).intent == Intent.COST_TOTAL
+
+
+def test_cost_per_hectare_intent():
+    assert ROUTER.route("Qual meu custo por hectare?", None).intent == Intent.COST_PER_HECTARE
+
+
+def test_applications_intent():
+    assert ROUTER.route("Quantas aplicações fiz?", None).intent == Intent.APPLICATIONS
+
+
+def test_break_even_intent():
+    assert ROUTER.route(
+        "Qual produtividade preciso para empatar?", None
+    ).intent == Intent.BREAK_EVEN

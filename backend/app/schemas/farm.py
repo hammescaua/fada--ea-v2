@@ -39,7 +39,25 @@ class FieldOut(BaseModel):
 class CropCycleCreate(BaseModel):
     crop: str = Field("soja", examples=["soja"])
     season: str = Field(..., examples=["2026/27"])
-    planting_date: date | None = None
+    area_ha: float | None = Field(None, gt=0)
+    cultivar: str | None = None
+    planned_planting_date: date | None = None
+    actual_planting_date: date | None = None
+    harvest_date: date | None = None
+    actual_yield_sc_ha: float | None = Field(None, ge=0)
+    notes: str | None = None
+
+
+class CropCycleUpdate(BaseModel):
+    """Atualização parcial da safra conforme ela progride (datas, produtividade...)."""
+
+    area_ha: float | None = Field(None, gt=0)
+    cultivar: str | None = None
+    planned_planting_date: date | None = None
+    actual_planting_date: date | None = None
+    harvest_date: date | None = None
+    actual_yield_sc_ha: float | None = Field(None, ge=0)
+    notes: str | None = None
 
 
 class CropCycleOut(BaseModel):
@@ -48,7 +66,13 @@ class CropCycleOut(BaseModel):
     crop: str
     season: str
     harvest_year: int
-    planting_date: date | None = None
+    area_ha: float | None = None
+    cultivar: str | None = None
+    planned_planting_date: date | None = None
+    actual_planting_date: date | None = None
+    harvest_date: date | None = None
+    actual_yield_sc_ha: float | None = None
+    notes: str | None = None
     created_at: datetime | None = None
 
 

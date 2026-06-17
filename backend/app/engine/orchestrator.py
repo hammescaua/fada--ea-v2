@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from datetime import date
 from enum import Enum
 
+from app.services.cost import AreaUnknown, CostService, CycleNotFound
 from app.services.planting_date import PlantingDateService
 from app.services.regional_intelligence import (
     MunicipalityNotInRegion,
@@ -34,7 +35,16 @@ class Intent(str, Enum):
     REGIONAL = "regional_intelligence"
     SIMULATION = "planting_simulation"
     OPTIMIZATION = "planting_optimization"
+    COST_TOTAL = "cost_total"
+    COST_PER_HECTARE = "cost_per_hectare"
+    APPLICATIONS = "applications_count"
+    BREAK_EVEN = "break_even"
     UNKNOWN = "unknown"
+
+
+COST_INTENTS = frozenset(
+    {Intent.COST_TOTAL, Intent.COST_PER_HECTARE, Intent.APPLICATIONS, Intent.BREAK_EVEN}
+)
 
 
 def _norm(s: str) -> str:
@@ -92,7 +102,16 @@ class DeterministicRouter:
         muni = self._municipality(message) or ctx_municipality
         planting = self._planting_date(message, harvest_year)
 
-        if re.search(r"melhor\s+(data|epoca|periodo)|qual\s+data|quando\s+plant|otimiz", n):
+        # Intenções de custo têm prioridade (palavras como "quanto" são ambíguas).
+        if re.search(r"empatar|break.?even|empate", n):
+            intent = Intent.BREAK_EVEN
+        elif re.search(r"quantas?\s+aplica|quantos?\s+manejo|numero\s+de\s+aplica", n):
+            intent = Intent.APPLICATIONS
+        elif re.search(r"custo\s+por\s+hectare|custo/ha|por\s+hectare", n):
+            intent = Intent.COST_PER_HECTARE
+        elif re.search(r"investi|gastei|gastan|custo\s+total|investimento|ja\s+gast", n):
+            intent = Intent.COST_TOTAL
+        elif re.search(r"melhor\s+(data|epoca|periodo)|qual\s+data|quando\s+plant|otimiz", n):
             intent = Intent.OPTIMIZATION
         elif planting and re.search(r"vale|se\s+eu\s+plant|plantar\s+em|colheria|e\s+se", n):
             intent = Intent.SIMULATION
@@ -107,10 +126,18 @@ class DeterministicRouter:
 class Orchestrator:
     regional: RegionalIntelligenceService
     planting: PlantingDateService
+    cost: CostService
     router: DeterministicRouter
 
-    def handle(self, message: str, ctx_municipality: str | None = None) -> dict:
+    def handle(
+        self, message: str, ctx_municipality: str | None = None,
+        ctx_crop_cycle_id: int | None = None, ctx_price_per_bag: float | None = None,
+    ) -> dict:
         r = self.router.route(message, ctx_municipality)
+
+        if r.intent in COST_INTENTS:
+            return self._dispatch_cost(r, ctx_crop_cycle_id, ctx_price_per_bag)
+
         if r.municipality is None:
             return self._reply(r, None, "Para responder, preciso do município (ex.: Horizontina).")
         try:
@@ -121,6 +148,39 @@ class Orchestrator:
                 f"O município '{r.municipality}' está fora da região coberta pelo MVP "
                 "(microrregião Três Passos/RS).",
             )
+
+    def _dispatch_cost(
+        self, r: Routed, cycle_id: int | None, price: float | None
+    ) -> dict:
+        if cycle_id is None:
+            return self._reply(r, None, "Para responder sobre custos, selecione a safra "
+                                        "(crop_cycle_id).")
+        try:
+            if r.intent == Intent.BREAK_EVEN:
+                if price is None:
+                    return self._reply(r, None, "Informe o preço da saca (R$/sc) para "
+                                                "calcular a produtividade de equilíbrio.")
+                fin = self.cost.financials(cycle_id, price)
+                answer = (
+                    f"Para empatar a R$ {price:.2f}/saca, você precisa de "
+                    f"{fin['break_even_yield_sc_ha']} sc/ha (custo de "
+                    f"R$ {fin['breakdown'].cost_per_hectare:.2f}/ha)."
+                )
+                return self._reply(r, _financials_dict(fin), answer)
+
+            b = self.cost.breakdown(cycle_id)
+            if r.intent == Intent.COST_TOTAL:
+                answer = (f"Você já investiu R$ {b.total_cost:.2f} nesta safra "
+                          f"({b.n_applications} aplicações).")
+            elif r.intent == Intent.COST_PER_HECTARE:
+                answer = f"Seu custo é R$ {b.cost_per_hectare:.2f} por hectare."
+            else:  # APPLICATIONS
+                answer = f"Você fez {b.n_applications} aplicações nesta safra."
+            return self._reply(r, {"breakdown": vars(b)}, answer)
+        except CycleNotFound:
+            return self._reply(r, None, f"Safra (crop_cycle_id={cycle_id}) não encontrada.")
+        except AreaUnknown:
+            return self._reply(r, None, "Área desconhecida: informe area_ha na safra ou no talhão.")
 
     def _dispatch(self, r: Routed) -> dict:
         if r.intent == Intent.OPTIMIZATION:
@@ -164,6 +224,16 @@ class Orchestrator:
             "result": result,
             "answer": answer,
         }
+
+
+def _financials_dict(fin: dict) -> dict:
+    return {
+        "breakdown": vars(fin["breakdown"]),
+        "price_per_bag": fin["price_per_bag"],
+        "break_even_yield_sc_ha": fin["break_even_yield_sc_ha"],
+        "yield_source": fin["yield_source"],
+        "scenarios": [vars(s) for s in fin["scenarios"]],
+    }
 
 
 def _safe_date(year: int, month: int, day: int) -> str | None:

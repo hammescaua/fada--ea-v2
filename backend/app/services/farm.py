@@ -33,13 +33,23 @@ class FarmService:
     def list_fields(self, farm_id: int) -> list[Field]:
         return self.repo.list_fields(farm_id)
 
-    def create_cycle(
-        self, field_id: int, crop: str, season: str, planting_date=None,
-    ) -> CropCycle:
+    def create_cycle(self, field_id: int, crop: str, season: str, **fields) -> CropCycle:
         return self.repo.add_cycle(
-            CropCycle(field_id=field_id, crop=crop, season=Season.parse(season),
-                      planting_date=planting_date)
+            CropCycle(field_id=field_id, crop=crop, season=Season.parse(season), **fields)
         )
+
+    def get_cycle(self, cycle_id: int) -> CropCycle | None:
+        return self.repo.get_cycle(cycle_id)
+
+    def update_cycle(self, cycle_id: int, changes: dict) -> CropCycle:
+        # valida invariantes reconstruindo a entidade após aplicar mudanças
+        current = self.repo.get_cycle(cycle_id)
+        if current is None:
+            raise LookupError(f"CropCycle {cycle_id} inexistente")
+        for k, v in changes.items():
+            setattr(current, k, v)
+        current.__post_init__()  # revalida (datas/área/produtividade)
+        return self.repo.update_cycle(cycle_id, changes)
 
     def record_observation(self, **kwargs) -> YieldObservation:
         return self.repo.add_observation(YieldObservation(**kwargs))

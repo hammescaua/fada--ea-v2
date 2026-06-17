@@ -12,6 +12,12 @@ class AssistantRequest(BaseModel):
     municipality: str | None = Field(
         None, description="Município de contexto, usado quando a pergunta não o cita."
     )
+    crop_cycle_id: int | None = Field(
+        None, description="Safra de contexto, necessária para perguntas de custo."
+    )
+    price_per_bag: float | None = Field(
+        None, description="Preço da saca (R$/sc) para perguntas de break-even."
+    )
 
 
 class AssistantResponse(BaseModel):

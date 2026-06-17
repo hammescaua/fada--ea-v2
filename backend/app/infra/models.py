@@ -48,11 +48,20 @@ class CropCycleORM(Base):
     crop: Mapped[str] = mapped_column(String(60))
     season_label: Mapped[str] = mapped_column(String(20))
     harvest_year: Mapped[int]
-    planting_date: Mapped[date | None]
+    area_ha: Mapped[float | None]
+    cultivar: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    planned_planting_date: Mapped[date | None]
+    actual_planting_date: Mapped[date | None]
+    harvest_date: Mapped[date | None]
+    actual_yield_sc_ha: Mapped[float | None]
+    notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     field: Mapped[FieldORM] = relationship(back_populates="cycles")
     observations: Mapped[list[YieldObservationORM]] = relationship(
+        back_populates="cycle", cascade="all, delete-orphan"
+    )
+    events: Mapped[list[AgriculturalEventORM]] = relationship(
         back_populates="cycle", cascade="all, delete-orphan"
     )
 
@@ -71,3 +80,34 @@ class YieldObservationORM(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     cycle: Mapped[CropCycleORM] = relationship(back_populates="observations")
+
+
+class AgriculturalEventORM(Base):
+    __tablename__ = "agricultural_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    crop_cycle_id: Mapped[int] = mapped_column(ForeignKey("crop_cycles.id"))
+    event_type: Mapped[str] = mapped_column(String(40))
+    event_date: Mapped[date]
+    product_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id"), nullable=True)
+    quantity: Mapped[float | None]
+    unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    cost: Mapped[float | None]
+    notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    cycle: Mapped[CropCycleORM] = relationship(back_populates="events")
+
+
+class ProductORM(Base):
+    __tablename__ = "products"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    category: Mapped[str] = mapped_column(String(40))
+    commercial_name: Mapped[str] = mapped_column(String(200))
+    active_ingredient: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    formulation: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
