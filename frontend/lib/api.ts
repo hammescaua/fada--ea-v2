@@ -643,12 +643,48 @@ export interface QuickLogRequest {
   notes?: string;
 }
 
+// Decision support
+// ---------------------------------------------------------------------------
+
+export interface AttentionFlag {
+  code: string;
+  severity: string;
+  title: string;
+  detail: string;
+  confidence: string;
+  evidence: Record<string, unknown>;
+}
+
+export interface FieldAttention {
+  field_id: number;
+  field_name: string;
+  attention_level: string;
+  flags: AttentionFlag[];
+}
+
+export interface RankingItem {
+  field_id: number;
+  field_name: string;
+  value: number;
+}
+
+export interface Decisions {
+  farm_id: number;
+  season: string | null;
+  n_fields: number;
+  fields: FieldAttention[];
+  rankings: Record<string, RankingItem[]>;
+  note: string;
+}
+
 // ---------------------------------------------------------------------------
 // Endpoint functions
 // ---------------------------------------------------------------------------
 
 export const api = {
   getMunicipalities: () => get<Municipality[]>("/municipalities"),
+
+  getDecisions: (farmId: number) => get<Decisions>(`/farms/${farmId}/decisions`),
 
   getPlanVsActual: (cycleId: number) =>
     get<PlanVsActual>(`/crop-cycles/${cycleId}/plan-vs-actual`),

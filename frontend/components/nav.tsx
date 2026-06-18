@@ -13,6 +13,7 @@ const links = [
   { href: "/planejamento", label: "Plano & Orçamento" },
   { href: "/financeiro", label: "Financeiro" },
   { href: "/insights", label: "Inteligência por Talhão" },
+  { href: "/decisoes", label: "Decisões" },
   { href: "/adaptive", label: "Inteligência Adaptativa" },
   { href: "/calibration", label: "Calibração" },
   { href: "/assistant", label: "Assistente" },
