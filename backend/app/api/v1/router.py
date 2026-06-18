@@ -8,6 +8,7 @@ from app.api.v1.routes import (
     calibration,
     capture,
     cost,
+    decisions,
     farms,
     health,
     insights,
@@ -29,4 +30,5 @@ api_router.include_router(cost.router, tags=["cost"])
 api_router.include_router(adaptive.router, tags=["adaptive"])
 api_router.include_router(calibration.router, tags=["calibration"])
 api_router.include_router(insights.router, tags=["insights"])
+api_router.include_router(decisions.router, tags=["decisions"])
 api_router.include_router(assistant.router, tags=["assistant"])

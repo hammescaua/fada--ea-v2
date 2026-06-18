@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.infra.db import get_session
 from app.infra.repositories import EventRepository, FarmRepository, PlanningRepository
+from app.schemas.decisions import CostProjectionResponse
 from app.schemas.planning import (
     AgendaResponse,
     PlanVsActualResponse,
@@ -61,5 +62,15 @@ def plan_vs_actual(
 def agenda(cycle_id: int, svc: PlanningService = Depends(get_service)) -> AgendaResponse:
     try:
         return AgendaResponse(**svc.agenda(cycle_id))
+    except CycleNotFound as exc:
+        raise HTTPException(404, f"CropCycle {exc} inexistente") from exc
+
+
+@router.get("/crop-cycles/{cycle_id}/cost-projection", response_model=CostProjectionResponse)
+def cost_projection(
+    cycle_id: int, svc: PlanningService = Depends(get_service)
+) -> CostProjectionResponse:
+    try:
+        return CostProjectionResponse(**svc.project_cost(cycle_id))
     except CycleNotFound as exc:
         raise HTTPException(404, f"CropCycle {exc} inexistente") from exc

@@ -65,6 +65,34 @@ class PlanningService:
             "summary": counts,
         }
 
+    def project_cost(self, cycle_id: int, today: date | None = None) -> dict:
+        """Projeção de custo BASEADA NO PLANO (não extrapolação linear — ADR-0016).
+
+        projetado = gasto real + custo das operações planejadas ainda não executadas.
+        """
+        cycle = self._cycle_or_raise(cycle_id)
+        planned = self.planning.list_by_cycle(cycle_id)
+        actual = self.events.list_by_cycle(cycle_id)
+        from app.domain.cost import calculate_total_cost
+        actual_total = calculate_total_cost(actual)
+
+        items = build_agenda(planned, actual, today or date.today())
+        remaining_planned = round(
+            sum(i.expected_cost or 0.0 for i in items if i.status != "concluída"), 2)
+        has_plan = bool(planned)
+        projected = round(actual_total + remaining_planned, 2) if has_plan else None
+        area = self._area(cycle)
+        return {
+            "crop_cycle_id": cycle_id,
+            "actual_total_cost": actual_total,
+            "remaining_planned_cost": remaining_planned if has_plan else None,
+            "projected_total_cost": projected,
+            "projected_cost_per_ha": (
+                round(projected / area, 2) if projected is not None and area else None),
+            "basis": ("plano (real + operações planejadas pendentes)" if has_plan
+                      else "sem plano: apenas o gasto real (não há base honesta para projeção)"),
+        }
+
 
 def _interpret(p) -> str:
     if p.planned_total_cost == 0:

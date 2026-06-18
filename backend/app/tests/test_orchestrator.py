@@ -128,3 +128,20 @@ def test_remaining_budget_intent():
 
 def test_following_plan_intent():
     assert ROUTER.route("Estou seguindo meu plano?", None).intent == Intent.FOLLOWING_PLAN
+
+
+def test_field_attention_intent():
+    assert ROUTER.route("Qual talhão merece mais atenção?", None).intent == \
+        Intent.FIELD_ATTENTION
+
+
+def test_cost_highest_field_intent():
+    assert ROUTER.route("Qual talhão está mais caro?", None).intent == \
+        Intent.COST_HIGHEST_FIELD
+
+
+def test_attention_not_confused_with_over_budget():
+    # "acima do planejado" -> orçamento; "merece atenção" -> decisão
+    assert ROUTER.route("Estou gastando acima do planejado?", None).intent == Intent.OVER_BUDGET
+    assert ROUTER.route("Qual talhão precisa de atenção?", None).intent == \
+        Intent.FIELD_ATTENTION

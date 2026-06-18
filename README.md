@@ -64,6 +64,7 @@ Veja:
 - [`docs/CALIBRATION_AND_RELIABILITY.md`](docs/CALIBRATION_AND_RELIABILITY.md) — os intervalos são honestos?
 - [`docs/FIELD_AND_INSIGHTS.md`](docs/FIELD_AND_INSIGHTS.md) — inteligência por talhão + Insight Engine
 - [`docs/IN_SEASON_PRODUCT.md`](docs/IN_SEASON_PRODUCT.md) — quick capture, plano e orçamento
+- [`docs/DECISION_SUPPORT.md`](docs/DECISION_SUPPORT.md) — atenção por talhão (sem score mágico)
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitetura e decisões técnicas
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — MVP / V1 / V2 / V3
 - [`docs/DOMAIN_MODEL.md`](docs/DOMAIN_MODEL.md) — modelo de domínio e ubiquitous language

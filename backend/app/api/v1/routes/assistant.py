@@ -20,6 +20,8 @@ from app.schemas.assistant import AssistantRequest, AssistantResponse
 from app.services.adaptive import AdaptiveService
 from app.services.calibration import CalibrationUnavailable, load_calibration_report
 from app.services.cost import CostService
+from app.services.decisions import DecisionsService
+from app.services.insights import InsightsService
 from app.services.planning import PlanningService
 from app.services.regional_intelligence import RegionalIntelligenceService
 
@@ -48,6 +50,11 @@ def get_orchestrator(session: Session = Depends(get_session)) -> Orchestrator:
         planning=PlanningService(
             farms=farms, planning=PlanningRepository(session),
             events=EventRepository(session),
+        ),
+        decisions=DecisionsService(
+            farms=farms, events=EventRepository(session),
+            planning=PlanningRepository(session), model=model,
+            insights=InsightsService(farms=farms, events=EventRepository(session), model=model),
         ),
         router=DeterministicRouter(known_municipalities=names),
         calibration_report=calib,

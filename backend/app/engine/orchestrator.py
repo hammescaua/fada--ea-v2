@@ -18,6 +18,8 @@ from enum import Enum
 
 from app.services.adaptive import AdaptiveService, FarmNotFound
 from app.services.cost import AreaUnknown, CostService, CycleNotFound
+from app.services.decisions import DecisionsService
+from app.services.decisions import FarmNotFound as DecisionFarmNotFound
 from app.services.planning import CycleNotFound as PlanCycleNotFound
 from app.services.planning import PlanningService
 from app.services.planting_date import PlantingDateService
@@ -53,6 +55,8 @@ class Intent(str, Enum):
     OVER_BUDGET = "over_budget"
     REMAINING_BUDGET = "remaining_budget"
     FOLLOWING_PLAN = "following_plan"
+    FIELD_ATTENTION = "field_attention"
+    COST_HIGHEST_FIELD = "cost_highest_field"
     UNKNOWN = "unknown"
 
 
@@ -69,6 +73,7 @@ CALIBRATION_INTENTS = frozenset(
 PLANNING_INTENTS = frozenset(
     {Intent.OVER_BUDGET, Intent.REMAINING_BUDGET, Intent.FOLLOWING_PLAN}
 )
+DECISION_INTENTS = frozenset({Intent.FIELD_ATTENTION, Intent.COST_HIGHEST_FIELD})
 
 
 def _norm(s: str) -> str:
@@ -149,6 +154,14 @@ class DeterministicRouter:
         if re.search(r"acima\s+da\s+media|abaixo\s+da\s+media|costuma\s+produz", n):
             return Routed(Intent.ABOVE_AVERAGE, muni, season, planting)
 
+        # Intenções de decisão (atenção/ranking por talhão).
+        if re.search(r"merece.*aten|precisa.*aten|qual\s+talhao.*aten|onde\s+devo\s+olhar|"
+                     r"maior\s+risco|merece.*olhar", n):
+            return Routed(Intent.FIELD_ATTENTION, muni, season, planting)
+        if re.search(r"custo.*(mais\s+alto|maior)|talhao.*mais\s+caro|"
+                     r"onde.*gast(ando|o)\s+mais|gastando\s+mais\s+em\s+qual", n):
+            return Routed(Intent.COST_HIGHEST_FIELD, muni, season, planting)
+
         # Intenções de orçamento/plano (antes de custo: "quanto/gastando" são ambíguos).
         if re.search(r"acima\s+do\s+(planejado|orcamento)|dentro\s+do\s+orcamento|"
                      r"estour|acima\s+do\s+plano|gastando\s+(mais|acima)", n):
@@ -186,6 +199,7 @@ class Orchestrator:
     cost: CostService
     adaptive: AdaptiveService
     planning: PlanningService
+    decisions: DecisionsService
     router: DeterministicRouter
     calibration_report: dict | None = None
 
@@ -200,6 +214,8 @@ class Orchestrator:
             return self._dispatch_cost(r, ctx_crop_cycle_id, ctx_price_per_bag)
         if r.intent in PLANNING_INTENTS:
             return self._dispatch_planning(r, ctx_crop_cycle_id)
+        if r.intent in DECISION_INTENTS:
+            return self._dispatch_decisions(r, ctx_farm_id)
         if r.intent in ADAPTIVE_INTENTS:
             return self._dispatch_adaptive(r, ctx_farm_id)
         if r.intent in CALIBRATION_INTENTS:
@@ -248,6 +264,37 @@ class Orchestrator:
             return self._reply(r, None, f"Safra (crop_cycle_id={cycle_id}) não encontrada.")
         except AreaUnknown:
             return self._reply(r, None, "Área desconhecida: informe area_ha na safra ou no talhão.")
+
+    def _dispatch_decisions(self, r: Routed, farm_id: int | None) -> dict:
+        if farm_id is None:
+            return self._reply(r, None, "Para responder sobre os talhões, selecione a "
+                                        "fazenda (farm_id).")
+        try:
+            d = self.decisions.decisions(farm_id)
+        except DecisionFarmNotFound:
+            return self._reply(r, None, f"Fazenda (farm_id={farm_id}) não encontrada.")
+        if d["n_fields"] == 0:
+            return self._reply(r, d, "Não há talhões com safra registrada nesta fazenda.")
+
+        if r.intent == Intent.COST_HIGHEST_FIELD:
+            rank = d["rankings"]["custo_por_hectare"]
+            if not rank:
+                return self._reply(r, d, "Ainda não há custos registrados por talhão.")
+            top = rank[0]
+            answer = (f"O talhão com maior custo por hectare é {top['field_name']}: "
+                      f"R$ {top['value']:.0f}/ha.")
+            return self._reply(r, d, answer)
+
+        # FIELD_ATTENTION
+        priority = [f for f in d["fields"] if f["attention_level"] in ("alta", "média")]
+        if not priority:
+            return self._reply(r, d, "Nenhum talhão em alerta — todos parecem saudáveis "
+                                     "com os dados atuais.")
+        top = priority[0]
+        motivos = "; ".join(fl["title"] for fl in top["flags"])
+        answer = (f"O talhão que merece mais atenção é {top['field_name']} "
+                  f"(atenção {top['attention_level']}): {motivos}.")
+        return self._reply(r, d, answer)
 
     def _dispatch_planning(self, r: Routed, cycle_id: int | None) -> dict:
         if cycle_id is None:
