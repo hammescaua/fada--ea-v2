@@ -1,0 +1,187 @@
+{
+  "method": "leave-one-year-out",
+  "ground_truth": "IBGE/PAM (municípios como proxy de fazenda no personalizado)",
+  "note": "Calibração personalizada usa municípios como proxy enquanto não há dado de fazenda.",
+  "regional": {
+    "label": "Regional",
+    "n_predictions": 787,
+    "coverage_50": 0.4892,
+    "coverage_80": 0.7916,
+    "coverage_90": 0.8933,
+    "coverage_95": 0.9416,
+    "coverage_detail": [
+      {
+        "nominal": 0.5,
+        "observed": 0.4892,
+        "wilson_low": 0.4544,
+        "wilson_high": 0.5241,
+        "verdict": "calibrado"
+      },
+      {
+        "nominal": 0.8,
+        "observed": 0.7916,
+        "wilson_low": 0.7619,
+        "wilson_high": 0.8185,
+        "verdict": "calibrado"
+      },
+      {
+        "nominal": 0.9,
+        "observed": 0.8933,
+        "wilson_low": 0.8698,
+        "wilson_high": 0.913,
+        "verdict": "calibrado"
+      },
+      {
+        "nominal": 0.95,
+        "observed": 0.9416,
+        "wilson_low": 0.9229,
+        "wilson_high": 0.9559,
+        "verdict": "calibrado"
+      }
+    ],
+    "mean_width": 22.35,
+    "median_width": 22.41,
+    "relative_width_pct": 68.5,
+    "mae": 6.96,
+    "rmse": 8.85,
+    "bias": 0.16,
+    "pinball": {
+      "p10": 1.723,
+      "p50": 3.51,
+      "p90": 1.53,
+      "mean": 2.254
+    },
+    "reliability_curve": [
+      {
+        "nominal": 0.5,
+        "observed": 0.4892,
+        "wilson_low": 0.4544,
+        "wilson_high": 0.5241
+      },
+      {
+        "nominal": 0.6,
+        "observed": 0.5934,
+        "wilson_low": 0.5587,
+        "wilson_high": 0.6272
+      },
+      {
+        "nominal": 0.7,
+        "observed": 0.6912,
+        "wilson_low": 0.6581,
+        "wilson_high": 0.7225
+      },
+      {
+        "nominal": 0.8,
+        "observed": 0.7916,
+        "wilson_low": 0.7619,
+        "wilson_high": 0.8185
+      },
+      {
+        "nominal": 0.9,
+        "observed": 0.8933,
+        "wilson_low": 0.8698,
+        "wilson_high": 0.913
+      },
+      {
+        "nominal": 0.95,
+        "observed": 0.9416,
+        "wilson_low": 0.9229,
+        "wilson_high": 0.9559
+      }
+    ],
+    "overconfident": false,
+    "underconfident": false,
+    "interpretation": "[Regional] 787 predições (backtest leave-one-year-out). CALIBRADO: o IC80 cobriu 79% (Wilson [76%, 82%]), consistente com 80% dentro do erro amostral. Largura média do IC80: 22.35 sc/ha (~68.5% da produtividade). MAE 6.96 · RMSE 8.85 sc/ha · bias +0.16 sc/ha (tende a super-prever)."
+  },
+  "personalized": {
+    "label": "Personalizado",
+    "n_predictions": 787,
+    "coverage_50": 0.5426,
+    "coverage_80": 0.8069,
+    "coverage_90": 0.9123,
+    "coverage_95": 0.9606,
+    "coverage_detail": [
+      {
+        "nominal": 0.5,
+        "observed": 0.5426,
+        "wilson_low": 0.5076,
+        "wilson_high": 0.5771,
+        "verdict": "underconfident"
+      },
+      {
+        "nominal": 0.8,
+        "observed": 0.8069,
+        "wilson_low": 0.7778,
+        "wilson_high": 0.8329,
+        "verdict": "calibrado"
+      },
+      {
+        "nominal": 0.9,
+        "observed": 0.9123,
+        "wilson_low": 0.8905,
+        "wilson_high": 0.9301,
+        "verdict": "calibrado"
+      },
+      {
+        "nominal": 0.95,
+        "observed": 0.9606,
+        "wilson_low": 0.9446,
+        "wilson_high": 0.9721,
+        "verdict": "calibrado"
+      }
+    ],
+    "mean_width": 22.53,
+    "median_width": 22.6,
+    "relative_width_pct": 69.0,
+    "mae": 6.65,
+    "rmse": 8.61,
+    "bias": 0.29,
+    "pinball": {
+      "p10": 1.674,
+      "p50": 3.36,
+      "p90": 1.507,
+      "mean": 2.18
+    },
+    "reliability_curve": [
+      {
+        "nominal": 0.5,
+        "observed": 0.5426,
+        "wilson_low": 0.5076,
+        "wilson_high": 0.5771
+      },
+      {
+        "nominal": 0.6,
+        "observed": 0.6404,
+        "wilson_low": 0.6063,
+        "wilson_high": 0.6732
+      },
+      {
+        "nominal": 0.7,
+        "observed": 0.7205,
+        "wilson_low": 0.6881,
+        "wilson_high": 0.7507
+      },
+      {
+        "nominal": 0.8,
+        "observed": 0.8069,
+        "wilson_low": 0.7778,
+        "wilson_high": 0.8329
+      },
+      {
+        "nominal": 0.9,
+        "observed": 0.9123,
+        "wilson_low": 0.8905,
+        "wilson_high": 0.9301
+      },
+      {
+        "nominal": 0.95,
+        "observed": 0.9606,
+        "wilson_low": 0.9446,
+        "wilson_high": 0.9721
+      }
+    ],
+    "overconfident": false,
+    "underconfident": false,
+    "interpretation": "[Personalizado] 787 predições (backtest leave-one-year-out). CALIBRADO: o IC80 cobriu 81% (Wilson [78%, 83%]), consistente com 80% dentro do erro amostral. Largura média do IC80: 22.53 sc/ha (~69.0% da produtividade). MAE 6.65 · RMSE 8.61 sc/ha · bias +0.29 sc/ha (tende a super-prever)."
+  }
+}

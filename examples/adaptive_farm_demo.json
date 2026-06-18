@@ -1,0 +1,122 @@
+{
+  "_note": "Rendimentos SINTÉTICOS (fazenda +12%) apenas para demonstração.",
+  "profile": {
+    "number_of_cycles": 10,
+    "observed_bias_percentage": 12.1,
+    "variance_relative": 0.0004
+  },
+  "residual_history": [
+    {
+      "harvest_year": 2015,
+      "actual_sc_ha": 53.5,
+      "regional_fitted_sc_ha": 48.5,
+      "residual_sc_ha": 5.0,
+      "residual_pct": 10.3
+    },
+    {
+      "harvest_year": 2016,
+      "actual_sc_ha": 50.3,
+      "regional_fitted_sc_ha": 44.2,
+      "residual_sc_ha": 6.1,
+      "residual_pct": 13.7
+    },
+    {
+      "harvest_year": 2017,
+      "actual_sc_ha": 52.3,
+      "regional_fitted_sc_ha": 47.5,
+      "residual_sc_ha": 4.8,
+      "residual_pct": 10.2
+    },
+    {
+      "harvest_year": 2018,
+      "actual_sc_ha": 51.3,
+      "regional_fitted_sc_ha": 45.1,
+      "residual_sc_ha": 6.2,
+      "residual_pct": 13.8
+    },
+    {
+      "harvest_year": 2019,
+      "actual_sc_ha": 50.0,
+      "regional_fitted_sc_ha": 45.3,
+      "residual_sc_ha": 4.7,
+      "residual_pct": 10.3
+    },
+    {
+      "harvest_year": 2020,
+      "actual_sc_ha": 46.5,
+      "regional_fitted_sc_ha": 40.8,
+      "residual_sc_ha": 5.7,
+      "residual_pct": 13.9
+    },
+    {
+      "harvest_year": 2021,
+      "actual_sc_ha": 52.0,
+      "regional_fitted_sc_ha": 47.1,
+      "residual_sc_ha": 4.9,
+      "residual_pct": 10.4
+    },
+    {
+      "harvest_year": 2022,
+      "actual_sc_ha": 34.3,
+      "regional_fitted_sc_ha": 29.9,
+      "residual_sc_ha": 4.4,
+      "residual_pct": 14.8
+    },
+    {
+      "harvest_year": 2023,
+      "actual_sc_ha": 36.2,
+      "regional_fitted_sc_ha": 33.1,
+      "residual_sc_ha": 3.1,
+      "residual_pct": 9.5
+    },
+    {
+      "harvest_year": 2024,
+      "actual_sc_ha": 49.7,
+      "regional_fitted_sc_ha": 43.7,
+      "residual_sc_ha": 6.0,
+      "residual_pct": 13.8
+    }
+  ],
+  "personalized_intelligence": {
+    "farm_id": 1,
+    "municipality_code": 4309605,
+    "season": "2026/27",
+    "harvest_year": 2027,
+    "regional_prediction": {
+      "point_sc_ha": 51.2,
+      "interval_sc_ha": [
+        39.6,
+        62.0
+      ]
+    },
+    "farm_adjustment": {
+      "applied_pct": 9.3,
+      "observed_bias_pct": 12.1,
+      "n_cycles": 10
+    },
+    "personalized_prediction": {
+      "point_sc_ha": 56.0,
+      "interval_sc_ha": [
+        44.7,
+        67.3
+      ],
+      "scenarios": [
+        {
+          "name": "pessimista",
+          "yield_sc_ha": 40.3
+        },
+        {
+          "name": "normal",
+          "yield_sc_ha": 56.0
+        },
+        {
+          "name": "otimista",
+          "yield_sc_ha": 60.7
+        }
+      ]
+    },
+    "confidence_score": 0.771,
+    "adaptation_level": "alta",
+    "explanation": "Com 10 safra(s) registrada(s), o FADA estima que esta fazenda produz cerca de 12.1% acima da média regional. Aplicando confiança de 77% (encolhimento), a correção efetiva é +9.3%, levando a previsão de 51.2 para 56.0 sc/ha. O intervalo não estreita artificialmente: a incerteza climática do ano é irredutível (adaptação: alta)."
+  }
+}

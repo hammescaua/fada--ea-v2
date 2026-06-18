@@ -1,0 +1,39 @@
+# Parâmetros canônicos do pipeline de Inteligência Regional (soja, Três Passos/RS).
+# Espelham as constantes em backend/pipelines/region.py e domain/crop/calendar.py.
+region:
+  microregion_id: 43002          # Três Passos (Noroeste RS)
+  target_municipality: 4309605   # Horizontina
+  first_harvest_year: 1980
+  last_harvest_year: 2024
+
+crop:
+  name: soja
+  reproductive_window: [12-21, 02-28]   # R1–R6 (enchimento de grãos)
+  season_window: [10-01, 03-31]
+  planting_window: [10-11, 12-10]
+  planting_optimal: [10-21, 11-20]
+  kc_reproductive: 1.15
+
+features:
+  - water_deficit_reproductive_mm
+  - dry_spell_longest_reproductive_days
+  - hot_days_reproductive
+  - precip_total_season_mm
+  - harvest_year
+
+model:
+  type: ridge
+  alpha: 10.0
+  cv: leave-one-year-out
+  production_model: ridge_linear   # interpretável (ADR-0006)
+
+planting_date:                     # What-If de data de plantio (ADR-0007/0008)
+  phenology_gdd:                   # base 10 °C, desde o plantio
+    emergence: 110
+    r1: 720
+    r6: 1500
+  grid_step_days: 5
+  grid_start: 10-01
+  grid_end: 12-20
+  risk_aversion: 0.5               # λ do equivalente-certeza
+  baseline_date: 11-01

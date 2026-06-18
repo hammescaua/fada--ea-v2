@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Env
+.env
+*.local
+
+# Data layers: raw/intermediate são reproduzíveis (gitignored); features/models
+# são commitados para o endpoint funcionar out-of-the-box.
+data/raw/cache/
+data/intermediate/*
+!data/intermediate/.gitkeep
+mlruns/
+mlflow.db
+
+# OS / editores
+.DS_Store
+.idea/
+.vscode/
+
+# Node (frontend, a partir do MVP+)
+node_modules/
+.next/
+
+# Banco local de dev
+*.db
+data/fada.db

@@ -1,0 +1,71 @@
+{
+  "municipality": "Três Passos",
+  "municipality_code": 4321907,
+  "crop": "soja",
+  "season": "2026/27",
+  "harvest_year": 2027,
+  "estimated_yield_sc_ha": 52.1,
+  "confidence_interval_sc_ha": [
+    40.4,
+    62.8
+  ],
+  "scenarios": [
+    {
+      "name": "pessimista",
+      "yield_sc_ha": 34.4
+    },
+    {
+      "name": "normal",
+      "yield_sc_ha": 52.1
+    },
+    {
+      "name": "otimista",
+      "yield_sc_ha": 56.0
+    }
+  ],
+  "climatic_risks": [
+    {
+      "factor": "deficit_hidrico_reprodutivo",
+      "severity": "alto",
+      "description": "Déficit hídrico no período reprodutivo (enchimento de grãos) é o principal risco. Em anos adversos (~1 a cada 10) o déficit chega a 271 mm (mediana 58 mm), reduzindo a produtividade em ~17.7 sc/ha (34.0%).",
+      "metric": {
+        "deficit_mediano_mm": 58.2,
+        "deficit_adverso_mm": 271.4,
+        "perda_potencial_sc_ha": 17.7,
+        "perda_potencial_pct": 34.0
+      }
+    },
+    {
+      "factor": "veranico_reprodutivo",
+      "severity": "moderado",
+      "description": "Veranicos: em anos secos a maior sequência sem chuva no reprodutivo atinge 12 dias (mediana 6 dias).",
+      "metric": {
+        "veranico_mediano_dias": 6.0,
+        "veranico_adverso_dias": 12.0
+      }
+    },
+    {
+      "factor": "estresse_termico",
+      "severity": "baixo",
+      "description": "Estresse térmico: em anos quentes há até 14 dias >35 °C no reprodutivo (mediana 0 dias).",
+      "metric": {
+        "dias_quentes_medianos": 0.0,
+        "dias_quentes_adversos": 13.6
+      }
+    }
+  ],
+  "planting_window": {
+    "start": "11/10/2026",
+    "end": "10/12/2026",
+    "optimal_start": "21/10/2026",
+    "optimal_end": "20/11/2026",
+    "rationale": "Janela do Zoneamento Agrícola de Risco Climático (ZARC) para soja no Noroeste do RS, que posiciona o período reprodutivo na fase de menor risco hídrico histórico."
+  },
+  "explanation": "Para Três Passos na safra 2026/27, a produtividade esperada de soja é de cerca de 52 sc/ha, com intervalo provável entre 40 e 63 sc/ha. Em um ano climático normal a estimativa é 52 sc/ha; num ano adverso (seco) pode cair para 34 sc/ha, e num ano favorável chegar a 56 sc/ha. A janela de semeadura recomendada para a região vai de 11/10/2026 a 10/12/2026 (ideal entre 21/10/2026 e 20/11/2026). Déficit hídrico no período reprodutivo (enchimento de grãos) é o principal risco. Em anos adversos (~1 a cada 10) o déficit chega a 271 mm (mediana 58 mm), reduzindo a produtividade em ~17.7 sc/ha (34.0%). Estimativa baseada em 45 anos de dados históricos (IBGE/PAM) e clima de reanálise; valores são probabilísticos, não garantias.",
+  "data_sources": [
+    "IBGE/PAM (rendimento municipal, tabela 1612)",
+    "Open-Meteo / ERA5 (reanálise climática)",
+    "NASA POWER (clima, fonte secundária)"
+  ],
+  "disclaimer": "Estimativa probabilística regional baseada em dados históricos e climatologia. Não considera ainda solo, manejo ou cultivar específicos da propriedade. Não é garantia de produtividade."
+}

@@ -1,0 +1,165 @@
+{
+  "_note": "Fazenda SINTÉTICA (clima real, produtividades fabricadas) p/ demonstração.",
+  "field_analytics": {
+    "farm_id": 1,
+    "n_fields": 3,
+    "n_records": 21,
+    "fields": [
+      {
+        "field_id": 1,
+        "field_name": "Talhão Norte",
+        "n_seasons": 7,
+        "mean_actual_sc_ha": 42.9,
+        "bias_vs_region_pct": 5.7,
+        "yield_stability_std_pct": 11.4,
+        "mean_cost_per_ha": 1449.0,
+        "n_seasons_with_cost": 7,
+        "latest_year": 2024,
+        "latest_actual_sc_ha": 34.9,
+        "cost_trend": {
+          "direction": "rising",
+          "net_change_pct": 80.0,
+          "monotonic": true,
+          "n": 7,
+          "first_year": 2018,
+          "last_year": 2024
+        }
+      },
+      {
+        "field_id": 3,
+        "field_name": "Talhão Leste",
+        "n_seasons": 7,
+        "mean_actual_sc_ha": 40.0,
+        "bias_vs_region_pct": -2.2,
+        "yield_stability_std_pct": 16.0,
+        "mean_cost_per_ha": 1405.56,
+        "n_seasons_with_cost": 7,
+        "latest_year": 2024,
+        "latest_actual_sc_ha": 37.1,
+        "cost_trend": {
+          "direction": "stable",
+          "net_change_pct": 0.0,
+          "monotonic": false,
+          "n": 7,
+          "first_year": 2018,
+          "last_year": 2024
+        }
+      },
+      {
+        "field_id": 2,
+        "field_name": "Talhão Sul",
+        "n_seasons": 7,
+        "mean_actual_sc_ha": 37.4,
+        "bias_vs_region_pct": -8.0,
+        "yield_stability_std_pct": 0.1,
+        "mean_cost_per_ha": 1725.0,
+        "n_seasons_with_cost": 7,
+        "latest_year": 2024,
+        "latest_actual_sc_ha": 40.2,
+        "cost_trend": {
+          "direction": "stable",
+          "net_change_pct": 0.0,
+          "monotonic": false,
+          "n": 7,
+          "first_year": 2018,
+          "last_year": 2024
+        }
+      }
+    ]
+  },
+  "insights": {
+    "farm_id": 1,
+    "n_insights": 7,
+    "insights": [
+      {
+        "type": "best_field_yield",
+        "scope": "field",
+        "field_id": 1,
+        "title": "Talhão de maior produtividade: Talhão Norte",
+        "detail": "Talhão Norte rende 7.2% acima da média da fazenda (+5.7% vs. região), em 7 safras.",
+        "evidence": {
+          "n_seasons": 7,
+          "delta_vs_farm_pct": 7.2,
+          "bias_vs_region_pct": 5.7
+        },
+        "confidence": "alta"
+      },
+      {
+        "type": "worst_field_yield",
+        "scope": "field",
+        "field_id": 2,
+        "title": "Talhão de menor produtividade: Talhão Sul",
+        "detail": "Talhão Sul rende 6.5% abaixo da média da fazenda (-8.0% vs. região), em 7 safras.",
+        "evidence": {
+          "n_seasons": 7,
+          "delta_vs_farm_pct": -6.5,
+          "bias_vs_region_pct": -8.0
+        },
+        "confidence": "alta"
+      },
+      {
+        "type": "most_stable_field",
+        "scope": "field",
+        "field_id": 2,
+        "title": "Talhão mais estável: Talhão Sul",
+        "detail": "Talhão Sul é o mais consistente (desvio de 0.1% nos resíduos ajustados ao clima, 7 safras).",
+        "evidence": {
+          "n_seasons": 7,
+          "stability_std_pct": 0.1
+        },
+        "confidence": "alta"
+      },
+      {
+        "type": "least_stable_field",
+        "scope": "field",
+        "field_id": 3,
+        "title": "Talhão menos estável: Talhão Leste",
+        "detail": "Talhão Leste apresenta a menor estabilidade (desvio de 16.0%, 7 safras) — maior risco de variação.",
+        "evidence": {
+          "n_seasons": 7,
+          "stability_std_pct": 16.0
+        },
+        "confidence": "alta"
+      },
+      {
+        "type": "cost_trend",
+        "scope": "field",
+        "field_id": 1,
+        "title": "Custo crescendo no talhão Talhão Norte",
+        "detail": "O custo/ha do Talhão Norte está crescendo há 7 safras (+80.0% de 2018 a 2024).",
+        "evidence": {
+          "n_seasons": 7,
+          "net_change_pct": 80.0,
+          "monotonic": true
+        },
+        "confidence": "alta"
+      },
+      {
+        "type": "yield_anomaly",
+        "scope": "field",
+        "field_id": 1,
+        "title": "Anomalia no talhão Talhão Norte (2024)",
+        "detail": "A safra 2024 do Talhão Norte ficou muito abaixo da norma do talhão (z=-21.5).",
+        "evidence": {
+          "n_seasons": 7,
+          "zscore": -21.49,
+          "harvest_year": 2024
+        },
+        "confidence": "alta"
+      },
+      {
+        "type": "farm_vs_region",
+        "scope": "farm",
+        "field_id": null,
+        "title": "Desempenho da fazenda vs. região",
+        "detail": "No conjunto (21 registros de talhão-safra), a fazenda rende 1.5% abaixo da expectativa regional ajustada ao clima.",
+        "evidence": {
+          "n_records": 21,
+          "bias_vs_region_pct": -1.5
+        },
+        "confidence": "alta"
+      }
+    ],
+    "note": "Insights determinísticos a partir de dado real registrado, com N e tamanho de efeito. Sem cultivar (confundimento) e sem personalização por talhão (dados insuficientes) nesta fase."
+  }
+}
