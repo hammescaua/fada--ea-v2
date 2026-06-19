@@ -22,6 +22,18 @@ def create_app() -> FastAPI:
     )
     init_db()  # cria as tabelas (idempotente)
     app.include_router(api_router, prefix="/api/v1")
+
+    @app.get("/", include_in_schema=False)
+    def root() -> dict:
+        # A raiz não é a API — orienta quem abre o backend no navegador.
+        return {
+            "service": settings.app_name,
+            "version": __version__,
+            "docs": "/docs",
+            "health": "/api/v1/health",
+            "status": "/api/v1/system/status",
+        }
+
     return app
 
 
