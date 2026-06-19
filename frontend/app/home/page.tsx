@@ -3,14 +3,19 @@
 import * as React from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, type FarmDashboard } from "@/lib/api";
+import { api, type EventType, type FarmDashboard } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
+import { ConfidenceBadge } from "@/components/confidence-badge";
 import { ErrorBlock, LoadingBlock } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Stat } from "@/components/stat";
 import { useFarmContext } from "@/lib/context";
+import { EVENT_TYPES, EVENT_TYPE_LABELS } from "@/lib/events";
 import { formatBRL, formatNumber } from "@/lib/utils";
 
 function levelVariant(level: string): BadgeProps["variant"] {
@@ -50,12 +55,94 @@ export default function HomePage() {
 
   const hasFarms = !!farmsQuery.data && farmsQuery.data.length > 0;
 
+  // Registro rápido (Fase 5.1)
+  const [qType, setQType] = React.useState<EventType>("FUNGICIDE");
+  const [qDate, setQDate] = React.useState("");
+  const [qCost, setQCost] = React.useState("");
+  const quickLog = useMutation({
+    mutationFn: () =>
+      api.quickLog({
+        crop_cycle_ids: [ctx.cropCycleId as number],
+        event_date: qDate,
+        event_type: qType,
+        cost: qCost ? Number(qCost) : undefined,
+      }),
+    onSuccess: () => {
+      setQCost("");
+      queryClient.invalidateQueries({ queryKey: ["dashboard", farmId] });
+    },
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Início"
         description="O essencial da sua safra hoje — atenção, próxima operação, orçamento e alertas."
       />
+
+      <ConfidenceBadge />
+
+      {/* Registro rápido — flywheel (Fase 5.1) */}
+      {hasFarms && ctx.cropCycleId !== null && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Registro rápido</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              className="flex flex-wrap items-end gap-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!qDate) return;
+                quickLog.mutate();
+              }}
+            >
+              <div className="space-y-1">
+                <Label htmlFor="qtype">Operação</Label>
+                <Select
+                  id="qtype"
+                  value={qType}
+                  onChange={(e) => setQType(e.target.value as EventType)}
+                >
+                  {EVENT_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {EVENT_TYPE_LABELS[t]}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="qdate">Data</Label>
+                <Input
+                  id="qdate"
+                  type="date"
+                  value={qDate}
+                  onChange={(e) => setQDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="qcost">Custo (R$)</Label>
+                <Input
+                  id="qcost"
+                  type="number"
+                  value={qCost}
+                  onChange={(e) => setQCost(e.target.value)}
+                  placeholder="opcional"
+                  className="w-32"
+                />
+              </div>
+              <Button type="submit" disabled={quickLog.isPending}>
+                {quickLog.isPending ? "Registrando…" : "Registrar"}
+              </Button>
+            </form>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Registrado na safra{" "}
+              <span className="font-medium">{ctx.cropCycleLabel ?? ""}</span>.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Empty state / onboarding */}
       {farmsQuery.isLoading ? (
