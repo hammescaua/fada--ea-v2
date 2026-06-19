@@ -109,6 +109,21 @@ class RegionalIntelligenceService:
         }
         explanation = self.explainer.explain(explain_payload)
 
+        n_years = estimate.climatology["n_years"]
+        reasoning = {
+            "n_years": n_years,
+            "method": (
+                "Estimativa regional (regressão sobre índices agroclimáticos) com a "
+                "tendência tecnológica projetada para a safra; cenários a partir da "
+                "climatologia histórica do município."
+            ),
+            "interval_basis": (
+                "Intervalo de ~80% construído a partir dos quantis dos resíduos "
+                "out-of-fold do modelo — reflete a incerteza climática do ano e não é "
+                "estreitado artificialmente."
+            ),
+        }
+
         return {
             "municipality": canonical,
             "municipality_code": code,
@@ -121,6 +136,8 @@ class RegionalIntelligenceService:
             "climatic_risks": risks_payload,
             "planting_window": planting_window,
             "explanation": explanation,
+            "n_years": n_years,
+            "reasoning": reasoning,
             "data_sources": DATA_SOURCES,
             "disclaimer": DISCLAIMER,
         }

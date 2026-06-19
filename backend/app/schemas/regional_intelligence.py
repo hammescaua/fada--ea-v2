@@ -32,6 +32,12 @@ class PlantingWindowDTO(BaseModel):
     rationale: str
 
 
+class ReasoningDTO(BaseModel):
+    n_years: int
+    method: str
+    interval_basis: str
+
+
 class RegionalIntelligenceResponse(BaseModel):
     municipality: str
     municipality_code: int
@@ -44,5 +50,7 @@ class RegionalIntelligenceResponse(BaseModel):
     climatic_risks: list[RiskDTO]
     planting_window: PlantingWindowDTO
     explanation: str
+    n_years: int
+    reasoning: ReasoningDTO
     data_sources: list[str]
     disclaimer: str

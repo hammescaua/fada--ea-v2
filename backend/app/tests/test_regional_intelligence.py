@@ -74,6 +74,10 @@ def test_endpoint_200():
     assert body["municipality_code"] == 4309605
     assert len(body["scenarios"]) == 3
     assert body["confidence_interval_sc_ha"][0] < body["confidence_interval_sc_ha"][1]
+    # Transparência (Fase 3.2): raciocínio estruturado exposto
+    assert body["n_years"] > 0
+    assert body["reasoning"]["n_years"] == body["n_years"]
+    assert "interval_basis" in body["reasoning"]
 
 
 def test_endpoint_422_unknown_municipality():
