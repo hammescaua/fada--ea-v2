@@ -55,10 +55,15 @@ export default function HomePage() {
 
   const hasFarms = !!farmsQuery.data && farmsQuery.data.length > 0;
 
-  // Registro rápido (Fase 5.1)
+  // Registro rápido (Fase 5.1) + presets (Fase 5.2)
   const [qType, setQType] = React.useState<EventType>("FUNGICIDE");
   const [qDate, setQDate] = React.useState("");
   const [qCost, setQCost] = React.useState("");
+  const [presetId, setPresetId] = React.useState<number | null>(null);
+  const presetsQuery = useQuery({
+    queryKey: ["event-presets"],
+    queryFn: api.getEventPresets,
+  });
   const quickLog = useMutation({
     mutationFn: () =>
       api.quickLog({
@@ -66,10 +71,40 @@ export default function HomePage() {
         event_date: qDate,
         event_type: qType,
         cost: qCost ? Number(qCost) : undefined,
+        preset_id: presetId ?? undefined,
       }),
     onSuccess: () => {
       setQCost("");
       queryClient.invalidateQueries({ queryKey: ["dashboard", farmId] });
+    },
+  });
+
+  // Criar preset (operação favorita)
+  const [newPreset, setNewPreset] = React.useState({
+    name: "",
+    event_type: "FUNGICIDE" as EventType,
+    product_name: "",
+    default_cost: "",
+    cost_is_per_hectare: false,
+  });
+  const createPreset = useMutation({
+    mutationFn: () =>
+      api.createEventPreset({
+        name: newPreset.name,
+        event_type: newPreset.event_type,
+        product_name: newPreset.product_name || undefined,
+        default_cost: newPreset.default_cost ? Number(newPreset.default_cost) : undefined,
+        cost_is_per_hectare: newPreset.cost_is_per_hectare,
+      }),
+    onSuccess: () => {
+      setNewPreset({
+        name: "",
+        event_type: "FUNGICIDE",
+        product_name: "",
+        default_cost: "",
+        cost_is_per_hectare: false,
+      });
+      queryClient.invalidateQueries({ queryKey: ["event-presets"] });
     },
   });
 
@@ -97,6 +132,28 @@ export default function HomePage() {
                 quickLog.mutate();
               }}
             >
+              {presetsQuery.data && presetsQuery.data.length > 0 && (
+                <div className="space-y-1">
+                  <Label htmlFor="qpreset">Preset</Label>
+                  <Select
+                    id="qpreset"
+                    value={presetId ?? ""}
+                    onChange={(e) => {
+                      const id = e.target.value ? Number(e.target.value) : null;
+                      setPresetId(id);
+                      const p = presetsQuery.data?.find((x) => x.id === id);
+                      if (p) setQType(p.event_type);
+                    }}
+                  >
+                    <option value="">— sem preset —</option>
+                    {presetsQuery.data.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              )}
               <div className="space-y-1">
                 <Label htmlFor="qtype">Operação</Label>
                 <Select
@@ -140,6 +197,72 @@ export default function HomePage() {
               Registrado na safra{" "}
               <span className="font-medium">{ctx.cropCycleLabel ?? ""}</span>.
             </p>
+
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs text-brand-700">
+                Criar preset (operação favorita)
+              </summary>
+              <form
+                className="mt-2 flex flex-wrap items-end gap-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!newPreset.name) return;
+                  createPreset.mutate();
+                }}
+              >
+                <div className="space-y-1">
+                  <Label htmlFor="pname">Nome</Label>
+                  <Input
+                    id="pname"
+                    value={newPreset.name}
+                    onChange={(e) => setNewPreset((s) => ({ ...s, name: e.target.value }))}
+                    placeholder="Ex.: Fungicida padrão"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="ptype">Operação</Label>
+                  <Select
+                    id="ptype"
+                    value={newPreset.event_type}
+                    onChange={(e) =>
+                      setNewPreset((s) => ({ ...s, event_type: e.target.value as EventType }))
+                    }
+                  >
+                    {EVENT_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {EVENT_TYPE_LABELS[t]}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="pcost">Custo padrão (R$)</Label>
+                  <Input
+                    id="pcost"
+                    type="number"
+                    value={newPreset.default_cost}
+                    onChange={(e) =>
+                      setNewPreset((s) => ({ ...s, default_cost: e.target.value }))
+                    }
+                    placeholder="opcional"
+                    className="w-32"
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={newPreset.cost_is_per_hectare}
+                    onChange={(e) =>
+                      setNewPreset((s) => ({ ...s, cost_is_per_hectare: e.target.checked }))
+                    }
+                  />
+                  por hectare
+                </label>
+                <Button type="submit" variant="outline" disabled={createPreset.isPending}>
+                  {createPreset.isPending ? "Salvando…" : "Salvar preset"}
+                </Button>
+              </form>
+            </details>
           </CardContent>
         </Card>
       )}

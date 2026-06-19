@@ -686,6 +686,30 @@ export interface QuickLogRequest {
   notes?: string;
 }
 
+export interface EventPreset {
+  id: number;
+  name: string;
+  event_type: EventType;
+  product_name: string | null;
+  product_id: number | null;
+  default_quantity: number | null;
+  unit: string | null;
+  default_cost: number | null;
+  cost_is_per_hectare: boolean;
+  notes: string | null;
+}
+
+export interface CreateEventPresetRequest {
+  name: string;
+  event_type: EventType;
+  product_name?: string;
+  default_quantity?: number;
+  unit?: string;
+  default_cost?: number;
+  cost_is_per_hectare?: boolean;
+  notes?: string;
+}
+
 // Decision support
 // ---------------------------------------------------------------------------
 
@@ -796,6 +820,11 @@ export const api = {
 
   quickLog: (body: QuickLogRequest) =>
     post<QuickLogRequest, { created: AgriculturalEvent[] }>("/quick-log", body),
+
+  getEventPresets: () => get<EventPreset[]>("/event-presets"),
+
+  createEventPreset: (body: CreateEventPresetRequest) =>
+    post<CreateEventPresetRequest, EventPreset>("/event-presets", body),
 
   getFieldAnalytics: (farmId: number) =>
     get<FieldAnalytics>(`/farms/${farmId}/field-analytics`),
