@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { EvidenceRows } from "@/components/how-we-got-here";
 import { formatNumber } from "@/lib/utils";
 
 function levelVariant(level: string): BadgeProps["variant"] {
@@ -133,6 +134,16 @@ export default function DecisoesPage() {
                                 </span>
                               </div>
                               <p className="mt-1 text-muted-foreground">{fl.detail}</p>
+                              {fl.evidence && Object.keys(fl.evidence).length > 0 && (
+                                <details className="mt-1">
+                                  <summary className="cursor-pointer text-xs text-brand-700">
+                                    Ver dados
+                                  </summary>
+                                  <div className="mt-1 rounded-md bg-muted/50 px-3 py-2">
+                                    <EvidenceRows evidence={fl.evidence} />
+                                  </div>
+                                </details>
+                              )}
                             </li>
                           ))}
                         </ul>

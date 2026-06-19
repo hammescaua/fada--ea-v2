@@ -10,6 +10,7 @@ import {
 import { PageHeader } from "@/components/page-header";
 import { MunicipalitySelect } from "@/components/municipality-select";
 import { ScenarioChart } from "@/components/scenario-chart";
+import { HowWeGotHere } from "@/components/how-we-got-here";
 import { ErrorBlock, Spinner } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -203,6 +204,22 @@ export default function RegionalIntelligencePage() {
               {data.explanation}
             </p>
           </div>
+
+          <HowWeGotHere
+            rows={[
+              {
+                label: "Anos de dados históricos",
+                value: data.n_years,
+                hint: "IBGE/PAM + clima",
+              },
+              { label: "Método", value: data.reasoning.method },
+              { label: "Base do intervalo", value: data.reasoning.interval_basis },
+              {
+                label: "Fontes",
+                value: data.data_sources.join(", "),
+              },
+            ]}
+          />
 
           {data.data_sources.length > 0 && (
             <p className="text-xs text-muted-foreground">

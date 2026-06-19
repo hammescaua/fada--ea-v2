@@ -82,6 +82,8 @@ export interface RegionalIntelligenceResponse {
   climatic_risks: ClimaticRisk[];
   planting_window: PlantingWindow;
   explanation: string;
+  n_years: number;
+  reasoning: { n_years: number; method: string; interval_basis: string };
   data_sources: string[];
   disclaimer: string;
 }
