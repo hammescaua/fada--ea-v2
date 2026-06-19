@@ -52,6 +52,21 @@ def test_field_on_missing_farm_404(client):
     assert r.status_code == 404
 
 
+def test_list_farm_cycles_by_name(client):
+    farm = client.post("/api/v1/farms",
+                       json={"name": "Faz", "municipality_code": 4309605}).json()
+    field = client.post(f"/api/v1/farms/{farm['id']}/fields",
+                        json={"name": "Talhão Norte", "area_ha": 100}).json()
+    client.post(f"/api/v1/fields/{field['id']}/crop-cycles",
+                json={"crop": "soja", "season": "2026/27", "area_ha": 100,
+                      "target_yield_sc_ha": 58})
+    cycles = client.get(f"/api/v1/farms/{farm['id']}/crop-cycles").json()
+    assert len(cycles) == 1
+    assert cycles[0]["field_name"] == "Talhão Norte"  # nome, não ID
+    assert cycles[0]["season"] == "2026/27"
+    assert cycles[0]["target_yield_sc_ha"] == 58
+
+
 def test_observation_invariants():
     # colheita anterior ao plantio
     with pytest.raises(ValueError):

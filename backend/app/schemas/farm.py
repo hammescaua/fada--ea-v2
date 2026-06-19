@@ -64,6 +64,20 @@ class CropCycleUpdate(BaseModel):
     notes: str | None = None
 
 
+class CropCycleListItem(BaseModel):
+    """Item enxuto para seletores por nome (sem o usuário digitar ID)."""
+
+    id: int
+    field_id: int
+    field_name: str
+    crop: str
+    season: str
+    harvest_year: int
+    area_ha: float | None = None
+    target_yield_sc_ha: float | None = None
+    has_actual_yield: bool = False
+
+
 class CropCycleOut(BaseModel):
     id: int
     field_id: int

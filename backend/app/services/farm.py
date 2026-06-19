@@ -33,6 +33,9 @@ class FarmService:
     def list_fields(self, farm_id: int) -> list[Field]:
         return self.repo.list_fields(farm_id)
 
+    def list_cycles(self, farm_id: int) -> list[CropCycle]:
+        return self.repo.list_cycles_by_farm(farm_id)
+
     def create_cycle(self, field_id: int, crop: str, season: str, **fields) -> CropCycle:
         return self.repo.add_cycle(
             CropCycle(field_id=field_id, crop=crop, season=Season.parse(season), **fields)

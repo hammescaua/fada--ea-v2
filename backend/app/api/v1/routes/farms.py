@@ -9,6 +9,7 @@ from app.infra.db import get_session
 from app.infra.repositories import FarmRepository
 from app.schemas.farm import (
     CropCycleCreate,
+    CropCycleListItem,
     CropCycleOut,
     CropCycleUpdate,
     FarmCreate,
@@ -47,6 +48,26 @@ def create_farm(body: FarmCreate, svc: FarmService = Depends(get_service)) -> Fa
 @router.get("/farms", response_model=list[FarmOut])
 def list_farms(svc: FarmService = Depends(get_service)) -> list[FarmOut]:
     return [FarmOut(**vars(f)) for f in svc.list_farms()]
+
+
+@router.get("/farms/{farm_id}/crop-cycles", response_model=list[CropCycleListItem])
+def list_farm_cycles(
+    farm_id: int, svc: FarmService = Depends(get_service)
+) -> list[CropCycleListItem]:
+    """Lista as safras da fazenda por NOME (talhão · safra) — sem digitar ID."""
+    names = {f.id: f.name for f in svc.list_fields(farm_id)}
+    cycles = svc.list_cycles(farm_id)
+    cycles.sort(key=lambda c: (-c.season.harvest_year, names.get(c.field_id, "")))
+    return [
+        CropCycleListItem(
+            id=c.id, field_id=c.field_id,
+            field_name=names.get(c.field_id, f"Talhão {c.field_id}"),
+            crop=c.crop, season=c.season.label, harvest_year=c.season.harvest_year,
+            area_ha=c.area_ha, target_yield_sc_ha=c.target_yield_sc_ha,
+            has_actual_yield=c.actual_yield_sc_ha is not None,
+        )
+        for c in cycles
+    ]
 
 
 @router.post("/farms/{farm_id}/fields", response_model=FieldOut, status_code=201)

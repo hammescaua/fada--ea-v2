@@ -97,6 +97,19 @@ def test_plan_vs_actual_404(client):
     assert client.get("/api/v1/crop-cycles/999/plan-vs-actual").status_code == 404
 
 
+def test_assistant_cost_total_with_context(client):
+    # Aceite 1.2: pergunta de custo com crop_cycle_id retorna o valor (não "selecione")
+    ca, _ = _two_cycles(client)
+    client.post(f"/api/v1/crop-cycles/{ca}/events",
+               json={"event_type": "BASE_FERTILIZATION", "event_date": "2026-11-01",
+                     "cost": 120000})
+    r = client.post("/api/v1/assistant", json={
+        "message": "Quanto já gastei nesta safra?", "crop_cycle_id": ca}).json()
+    assert r["intent"] == "cost_total"
+    assert "120000" in r["answer"]
+    assert "selecione" not in r["answer"].lower()
+
+
 def test_assistant_budget_questions(client):
     ca, _ = _two_cycles(client)
     client.post(f"/api/v1/crop-cycles/{ca}/planned-events",
