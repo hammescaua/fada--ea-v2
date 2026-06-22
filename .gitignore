@@ -31,3 +31,6 @@ node_modules/
 # Banco local de dev
 *.db
 data/fada.db
+
+# Relatório de pesquisa (entregue à parte, não versionado)
+*.docx
