@@ -73,6 +73,7 @@ curl -X POST http://localhost:8000/api/v1/assistant \
 E um **frontend** (Next.js) em [`frontend/`](frontend/) consumindo todos os endpoints.
 
 Veja:
+- 📚 **[`guia-do-projeto/`](guia-do-projeto/00-INDICE.md) — GUIA COMPLETO PARA LEIGOS** (14 capítulos: o que é, arquitetura, cada arquivo, tecnologias e os porquês)
 - [`docs/V1_OVERVIEW.md`](docs/V1_OVERVIEW.md) — **visão geral da V1 concluída** (o que entrega + backlog V2+)
 - [`docs/MVP_REGIONAL_INTELLIGENCE.md`](docs/MVP_REGIONAL_INTELLIGENCE.md) — a fatia, com resultados reais
 - [`docs/PLANTING_DATE_WHATIF.md`](docs/PLANTING_DATE_WHATIF.md) — What-If de data de plantio
