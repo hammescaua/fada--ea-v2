@@ -288,7 +288,7 @@ export default function HomePage() {
                   ? "Criando demonstração…"
                   : "Explorar com fazenda de demonstração"}
               </Button>
-              <Link href="/farms">
+              <Link href="/onboarding">
                 <Button variant="outline">Criar minha fazenda</Button>
               </Link>
             </div>

@@ -308,6 +308,8 @@ export interface UpdateCropCycleRequest {
   actual_planting_date?: string;
   harvest_date?: string;
   actual_yield_sc_ha?: number;
+  target_yield_sc_ha?: number;
+  expected_price_per_bag?: number;
   notes?: string;
 }
 
