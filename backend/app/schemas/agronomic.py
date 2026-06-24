@@ -113,6 +113,7 @@ class AgronomicEstimateResponse(BaseModel):
     personalized: PersonalizedBlock
     adjustment: AdjustmentBlock
     recommendations: list[RecommendationOut]
+    water_sensitivity_note: str | None = None
     climatic_risks: list[dict]
     data_sources: list[str]
     disclaimer: str

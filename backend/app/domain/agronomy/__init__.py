@@ -24,6 +24,11 @@ from app.domain.agronomy.recommendations import (
     Recommendation,
     recommendations,
 )
+from app.domain.agronomy.scenario import (
+    WATER_FACTORS,
+    scenario_multipliers,
+    water_sensitivity_note,
+)
 from app.domain.agronomy.soil import SoilAnalysis, classify_soil_analysis
 
 __all__ = [
@@ -39,11 +44,14 @@ __all__ = [
     "Recommendation",
     "SoilAnalysis",
     "UnknownFactor",
+    "WATER_FACTORS",
     "apply_adjustment",
     "classify_soil_analysis",
     "compute_adjustment",
     "compute_cost_adjustment",
     "planting_window_class",
     "recommendations",
+    "scenario_multipliers",
     "validate_profile",
+    "water_sensitivity_note",
 ]

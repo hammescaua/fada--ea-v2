@@ -33,7 +33,14 @@ def apply_adjustment(
     regional_interval_sc_ha: tuple[float, float],
     scenarios_sc_ha: dict[str, float],
     adjustment: AdjustmentResult,
+    scenario_multipliers: dict[str, float] | None = None,
 ) -> PersonalizedEstimate:
+    """Aplica o ajuste do perfil. Se ``scenario_multipliers`` for dado, cada cenário
+    usa o seu multiplicador (sensível ao clima, ADR-0023); senão, usa o flat.
+
+    O **ponto** e o **intervalo** sempre usam o multiplicador flat (= cenário
+    normal), preservando a referência.
+    """
     m = adjustment.multiplier
     point = regional_point_sc_ha * m
 
@@ -43,6 +50,11 @@ def apply_adjustment(
     abs_se = point * rel_se
     h = math.sqrt(h_reg ** 2 + abs_se ** 2)
 
+    def scen_mult(name: str) -> float:
+        if scenario_multipliers is None:
+            return m
+        return scenario_multipliers.get(name, m)
+
     return PersonalizedEstimate(
         regional_point_sc_ha=round(regional_point_sc_ha, 1),
         regional_interval_sc_ha=(round(lo, 1), round(hi, 1)),
@@ -50,5 +62,7 @@ def apply_adjustment(
         personalized_interval_sc_ha=(round(point - h, 1), round(point + h, 1)),
         multiplier=m,
         total_effect_pct=adjustment.total_effect_pct,
-        scenarios_sc_ha={name: round(y * m, 1) for name, y in scenarios_sc_ha.items()},
+        scenarios_sc_ha={
+            name: round(y * scen_mult(name), 1) for name, y in scenarios_sc_ha.items()
+        },
     )

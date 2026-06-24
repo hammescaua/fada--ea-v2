@@ -254,6 +254,7 @@ export interface AgronomicEstimate {
     rationale: string;
     confidence: string;
   }[];
+  water_sensitivity_note?: string | null;
   climatic_risks: ClimaticRisk[];
   data_sources: string[];
   disclaimer: string;

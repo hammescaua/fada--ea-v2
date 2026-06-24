@@ -369,6 +369,23 @@ export default function PerfilTalhaoPage() {
               </div>
             </div>
 
+            {/* Cenários personalizados (divergem por clima) + nota de sensibilidade */}
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                {e.personalized.scenarios.map((s) => (
+                  <span key={s.name}>
+                    <span className="capitalize text-muted-foreground">{s.name}: </span>
+                    <span className="font-medium tabular-nums">{formatNumber(s.yield_sc_ha)} sc/ha</span>
+                  </span>
+                ))}
+              </div>
+              {e.water_sensitivity_note && (
+                <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  {e.water_sensitivity_note}
+                </p>
+              )}
+            </div>
+
             {e.adjustment.factors.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

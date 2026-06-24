@@ -15,6 +15,7 @@ from app.domain.agronomy import (
     apply_adjustment,
     compute_adjustment,
     compute_cost_adjustment,
+    scenario_multipliers,
 )
 from app.domain.planning.season import season_margin
 from app.services.benchmark import BenchmarkService, BenchmarkUnavailable
@@ -57,7 +58,10 @@ class SeasonPlanningService:
         adjustment_block = None
         if profile:
             adj = compute_adjustment(profile)
-            est = apply_adjustment(expected, tuple(interval), scenarios, adj)
+            est = apply_adjustment(
+                expected, tuple(interval), scenarios, adj,
+                scenario_multipliers=scenario_multipliers(profile),
+            )
             expected = est.personalized_point_sc_ha
             interval = list(est.personalized_interval_sc_ha)
             scenarios = est.scenarios_sc_ha

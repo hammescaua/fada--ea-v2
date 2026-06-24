@@ -14,6 +14,8 @@ from app.domain.agronomy import (
     apply_adjustment,
     compute_adjustment,
     recommendations,
+    scenario_multipliers,
+    water_sensitivity_note,
 )
 from app.services.regional_intelligence import RegionalIntelligenceService
 
@@ -57,6 +59,7 @@ class AgronomicService:
             regional_interval_sc_ha=tuple(reg["confidence_interval_sc_ha"]),
             scenarios_sc_ha=scenarios,
             adjustment=adjustment,
+            scenario_multipliers=scenario_multipliers(profile),
         )
         recs = recommendations(profile, est.personalized_point_sc_ha)
         return {
@@ -84,6 +87,7 @@ class AgronomicService:
                 "factors": [vars(a) for a in adjustment.applied],
             },
             "recommendations": [vars(r) for r in recs],
+            "water_sensitivity_note": water_sensitivity_note(profile),
             "climatic_risks": reg["climatic_risks"],
             "data_sources": reg["data_sources"] + ["Perfil Agronômico FADA (ajuste a priori)"],
             "disclaimer": _DISCLAIMER,
