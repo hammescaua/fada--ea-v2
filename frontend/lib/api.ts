@@ -199,6 +199,34 @@ export interface AssistantResponse {
 }
 
 // ---------------------------------------------------------------------------
+// ZARC: janela oficial de plantio (MAPA) — fonte de verdade do zoneamento
+// ---------------------------------------------------------------------------
+
+export interface ZarcWindow {
+  start: string; // MM-DD
+  end: string; // MM-DD
+}
+
+export interface ZarcPlantingWindow {
+  crop: string;
+  uf: string;
+  safra: string;
+  manejo: string;
+  portaria: string;
+  source: string;
+  fetched_at: string;
+  note: string;
+  municipality_code: number;
+  municipality_name: string;
+  windows_by_risk: Record<string, ZarcWindow[]>;
+  disclaimer: string;
+  planting_date: string | null;
+  within_zarc: boolean | null;
+  risk_level: number | null;
+  interpretation: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // Weather: previsão + alertas agronômicos (Open-Meteo) — proativo, com incerteza
 // ---------------------------------------------------------------------------
 
@@ -911,6 +939,12 @@ export const api = {
 
   getFarmWeather: (farmId: number) =>
     get<WeatherForecast>(`/farms/${farmId}/weather`),
+
+  getZarcWindow: (municipality: string, plantingDate?: string) => {
+    const q = new URLSearchParams({ municipality, crop: "soja", uf: "RS" });
+    if (plantingDate) q.set("planting_date", plantingDate);
+    return get<ZarcPlantingWindow>(`/zarc/planting-window?${q.toString()}`);
+  },
 
   getSystemStatus: () => get<SystemStatus>("/system/status"),
 

@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   api,
   type PlantingWindowOptimizationRequest,
   type PlantingWindowOptimizationResponse,
   type PlantingRecommendation,
   type Scenario,
+  type ZarcPlantingWindow,
 } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { MunicipalitySelect } from "@/components/municipality-select";
@@ -58,6 +59,21 @@ export default function OptimizePage() {
   };
 
   const data = mutation.data;
+
+  // Janela ZARC oficial do MAPA (fonte de verdade). Carrega quando há município.
+  const zarc = useQuery<ZarcPlantingWindow>({
+    queryKey: ["zarc-window", municipality],
+    queryFn: () => api.getZarcWindow(municipality),
+    enabled: municipality !== "",
+    retry: false,
+    staleTime: 1000 * 60 * 60,
+  });
+
+  // "MM-DD" -> "DD/MM"
+  const mmddToBR = (s: string) => {
+    const [m, d] = s.split("-");
+    return `${d}/${m}`;
+  };
 
   return (
     <div>
@@ -120,6 +136,34 @@ export default function OptimizePage() {
         </div>
       )}
 
+      {/* Janela ZARC OFICIAL (MAPA) — fonte de verdade, independente do otimizador */}
+      {zarc.data && (
+        <Card className="mb-6 border-brand-100">
+          <CardContent className="space-y-2 pt-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">ZARC oficial · {zarc.data.source}</Badge>
+              <span className="text-sm text-muted-foreground">
+                soja {zarc.data.manejo.toLowerCase()} · safra {zarc.data.safra} ·{" "}
+                {zarc.data.portaria}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+              {Object.entries(zarc.data.windows_by_risk).map(([risk, wins]) => (
+                <div key={risk}>
+                  <span className="font-medium">Risco {risk}%: </span>
+                  {wins.length === 0
+                    ? "—"
+                    : wins
+                        .map((w) => `${mmddToBR(w.start)}–${mmddToBR(w.end)}`)
+                        .join(", ")}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">{zarc.data.disclaimer}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {data && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -128,7 +172,7 @@ export default function OptimizePage() {
               value={formatNumber(data.baseline_expected_sc_ha)}
               unit="sc/ha"
             />
-            <Stat label="Janela ZARC" value={data.zarc_window} />
+            <Stat label="Janela do otimizador (GDD)" value={data.zarc_window} />
             <Stat label="Aversão ao risco" value={data.risk_aversion.toFixed(1)} />
           </div>
 
