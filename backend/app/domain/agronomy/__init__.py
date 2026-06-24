@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from app.domain.agronomy.cost_profile import (
+    COST_FACTOR_EFFECTS,
+    AppliedCostFactor,
+    CostAdjustmentResult,
+    compute_cost_adjustment,
+)
 from app.domain.agronomy.estimate import PersonalizedEstimate, apply_adjustment
 from app.domain.agronomy.profile import (
     FACTORS,
@@ -14,13 +20,17 @@ from app.domain.agronomy.profile import (
 )
 
 __all__ = [
+    "COST_FACTOR_EFFECTS",
     "FACTORS",
     "AdjustmentResult",
+    "AppliedCostFactor",
     "AppliedFactor",
+    "CostAdjustmentResult",
     "Factor",
     "PersonalizedEstimate",
     "UnknownFactor",
     "apply_adjustment",
     "compute_adjustment",
+    "compute_cost_adjustment",
     "validate_profile",
 ]

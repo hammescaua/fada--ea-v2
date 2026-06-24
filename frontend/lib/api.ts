@@ -321,6 +321,12 @@ export interface SeasonBrief {
       profit_per_ha: number;
       margin_pct: number;
     };
+    cost_adjustment?: {
+      multiplier: number;
+      total_effect_pct: number;
+      reference_cot_per_ha: number;
+      factors: { key: string; option: string; effect_pct: number; rationale: string }[];
+    } | null;
   } | null;
   verdict: string;
   data_sources: string[];

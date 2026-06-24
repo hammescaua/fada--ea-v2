@@ -58,8 +58,16 @@ Exposto por `GET /agronomic/factors` (catálogo do questionário) e
   permitida (nível típico) e por puxar parte dos fatores de fontes oficiais no futuro
   (solo via EMBRAPA Solos, janela via ZARC já integrado).
 
+## Extensão — personalização da rentabilidade (custo)
+O **mesmo perfil** também desloca o **custo de referência** (CONAB) por um
+`compute_cost_adjustment` (matriz de custo separada, só fatores com implicação de
+custo clara: irrigação, programa de fungicida/pragas/daninhas, calagem na safra,
+sistema de plantio, cultivar/semente; multiplicador limitado a [0,80; 1,25]). No
+brief de safra, a margem passa a divergir por **produtividade e custo** do talhão,
+revelando o **trade-off econômico** (ex.: cortar fungicida economiza custo mas
+derruba a margem). Persistido por talhão e integrado ao brief (`field_id`).
+
 ## Próximos passos
-Persistir o perfil por talhão e **alimentar o brief de safra** com a produtividade
-personalizada (margem por talhão). Pré-preencher fatores a partir de fontes oficiais
-(EMBRAPA Solos → textura/profundidade; ZARC → janela; análise de solo → P/K/acidez).
-Quando houver colheitas, combinar a priori (perfil) e a posteriori (shrinkage).
+Pré-preencher fatores a partir de fontes oficiais (EMBRAPA Solos →
+textura/profundidade; ZARC → janela; análise de solo → P/K/acidez). Quando houver
+colheitas, combinar a priori (perfil) e a posteriori (shrinkage) num só nível.

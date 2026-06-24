@@ -85,3 +85,17 @@ def test_season_brief_personalized_by_field(client):
 
 def test_season_brief_requires_municipality_or_field(client):
     assert client.get("/api/v1/planning/season-brief").status_code == 422
+
+
+def test_brief_personalizes_cost_via_profile(client):
+    fid = _field(client)
+    # Irrigação encarece o custo de referência → cost_adjustment positivo no brief.
+    client.put(f"/api/v1/fields/{fid}/agronomic-profile",
+               json={"profile": {"irrigacao": "irrigado"}})
+    body = client.get(f"/api/v1/planning/season-brief?field_id={fid}").json()
+    margin = body["margin"]
+    assert margin is not None
+    assert margin["cost_adjustment"] is not None
+    assert margin["cost_adjustment"]["total_effect_pct"] > 0
+    # custo COT usado > custo de referência CONAB
+    assert margin["cost_per_ha_cot"] > margin["cost_adjustment"]["reference_cot_per_ha"]

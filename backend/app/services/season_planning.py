@@ -11,7 +11,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.domain.agronomy import apply_adjustment, compute_adjustment
+from app.domain.agronomy import (
+    apply_adjustment,
+    compute_adjustment,
+    compute_cost_adjustment,
+)
 from app.domain.planning.season import season_margin
 from app.services.benchmark import BenchmarkService, BenchmarkUnavailable
 from app.services.market import MarketService, PriceUnavailable
@@ -86,19 +90,33 @@ class SeasonPlanningService:
         price_block = self._price(crop, price_per_bag)
         cost_block = self._cost(crop, uf)
 
-        # 5) Margem só quando há preço E custo.
+        # 5) Margem só quando há preço E custo. Com perfil, o custo de referência
+        # também é personalizado (rentabilidade única por talhão).
         margin_block = None
         if price_block is not None and cost_block is not None:
+            costs = {
+                "coe": cost_block["coe_per_ha"],
+                "cot": cost_block["cot_per_ha"],
+                "ct": cost_block["ct_per_ha"],
+            }
+            cost_adj_block = None
+            if profile:
+                cadj = compute_cost_adjustment(profile)
+                if cadj.multiplier != 1.0:
+                    costs = {k: round(v * cadj.multiplier, 2) for k, v in costs.items()}
+                    cost_adj_block = {
+                        "multiplier": cadj.multiplier,
+                        "total_effect_pct": cadj.total_effect_pct,
+                        "reference_cot_per_ha": cost_block["cot_per_ha"],
+                        "factors": [vars(a) for a in cadj.applied],
+                    }
             margin_block = season_margin(
                 yield_scenarios=scenarios,
                 expected_yield_sc_ha=expected,
                 price_per_bag=price_block["price_per_bag"],
-                costs_per_ha={
-                    "coe": cost_block["coe_per_ha"],
-                    "cot": cost_block["cot_per_ha"],
-                    "ct": cost_block["ct_per_ha"],
-                },
+                costs_per_ha=costs,
             )
+            margin_block["cost_adjustment"] = cost_adj_block
 
         return {
             "municipality": reg["municipality"],

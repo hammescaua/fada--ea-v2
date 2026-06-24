@@ -264,7 +264,11 @@ export default function PlanejarSafraPage() {
                   <Stat
                     label="Custo de referência (COT)"
                     value={`${formatBRL(b.margin.cost_per_ha_cot)}/ha`}
-                    hint={`CONAB · safra ${b.cost.safra}`}
+                    hint={
+                      b.margin.cost_adjustment
+                        ? `personalizado (${b.margin.cost_adjustment.total_effect_pct > 0 ? "+" : ""}${formatNumber(b.margin.cost_adjustment.total_effect_pct)}% vs CONAB)`
+                        : `CONAB · safra ${b.cost.safra}`
+                    }
                   />
                   <Stat
                     label="Margem esperada"
@@ -291,6 +295,30 @@ export default function PlanejarSafraPage() {
                     <span>CT (total): <b>{b.margin.break_even_yield_sc_ha.ct}</b></span>
                   </div>
                 </div>
+
+                {b.margin.cost_adjustment && b.margin.cost_adjustment.factors.length > 0 && (
+                  <div className="rounded-md bg-muted/40 p-3 text-xs">
+                    <span className="font-medium">
+                      Custo personalizado pelo perfil do talhão (vs referência CONAB):
+                    </span>
+                    <ul className="mt-1 space-y-0.5">
+                      {b.margin.cost_adjustment.factors.map((f) => (
+                        <li key={f.key} className="text-muted-foreground">
+                          <span
+                            className={
+                              "font-medium " +
+                              (f.effect_pct >= 0 ? "text-red-700" : "text-green-700")
+                            }
+                          >
+                            {f.effect_pct > 0 ? "+" : ""}
+                            {f.effect_pct}%
+                          </span>{" "}
+                          — {f.rationale}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
