@@ -16,6 +16,7 @@ const primary = [
 
 // Ferramentas avançadas — agrupadas e colapsadas (linguagem de produtor).
 const advanced = [
+  { href: "/planejar-safra", label: "Planejar a Safra" },
   { href: "/", label: "Estimativa da Região" },
   { href: "/planting/simulate", label: "Simular Data de Plantio" },
   { href: "/planting/optimize", label: "Melhor Janela de Plantio" },

@@ -199,6 +199,69 @@ export interface AssistantResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Season brief: planejamento pré-safra (síntese de decisão)
+// ---------------------------------------------------------------------------
+
+export interface SeasonBrief {
+  municipality: string;
+  municipality_code: number;
+  crop: string;
+  season: string;
+  harvest_year: number;
+  yield: {
+    expected_sc_ha: number;
+    interval_sc_ha: [number, number];
+    scenarios: Scenario[];
+    risks: ClimaticRisk[];
+    n_years: number;
+  };
+  planting: {
+    zarc: {
+      safra: string;
+      portaria: string;
+      manejo: string;
+      windows_by_risk: Record<string, { start: string; end: string }[]>;
+    } | null;
+    best_date: {
+      planting_date: string;
+      expected_yield_sc_ha: number;
+      downside_sc_ha: number;
+      justification: string;
+    } | null;
+  };
+  price: {
+    price_per_bag: number;
+    source: string;
+    day?: string;
+    unit?: string;
+    is_stale?: boolean;
+  } | null;
+  cost: {
+    coe_per_ha: number;
+    cot_per_ha: number;
+    ct_per_ha: number;
+    source: string;
+    safra: string;
+  } | null;
+  margin: {
+    price_per_bag: number;
+    cost_basis: string;
+    cost_per_ha_cot: number;
+    break_even_yield_sc_ha: { coe: number; cot: number; ct: number };
+    scenarios: FinancialScenario[];
+    expected: {
+      yield_sc_ha: number;
+      revenue_per_ha: number;
+      profit_per_ha: number;
+      margin_pct: number;
+    };
+  } | null;
+  verdict: string;
+  data_sources: string[];
+  disclaimer: string;
+}
+
+// ---------------------------------------------------------------------------
 // ZARC: janela oficial de plantio (MAPA) — fonte de verdade do zoneamento
 // ---------------------------------------------------------------------------
 
@@ -939,6 +1002,12 @@ export const api = {
 
   getFarmWeather: (farmId: number) =>
     get<WeatherForecast>(`/farms/${farmId}/weather`),
+
+  getSeasonBrief: (municipality: string, season = "2026/27", pricePerBag?: number) => {
+    const q = new URLSearchParams({ municipality, crop: "soja", uf: "RS", season });
+    if (pricePerBag) q.set("price_per_bag", String(pricePerBag));
+    return get<SeasonBrief>(`/planning/season-brief?${q.toString()}`);
+  },
 
   getZarcWindow: (municipality: string, plantingDate?: string) => {
     const q = new URLSearchParams({ municipality, crop: "soja", uf: "RS" });
