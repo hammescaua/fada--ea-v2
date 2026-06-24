@@ -16,6 +16,7 @@ from app.domain.agronomy.profile import (
     Factor,
     UnknownFactor,
     compute_adjustment,
+    planting_window_class,
     validate_profile,
 )
 from app.domain.agronomy.soil import SoilAnalysis, classify_soil_analysis
@@ -35,5 +36,6 @@ __all__ = [
     "classify_soil_analysis",
     "compute_adjustment",
     "compute_cost_adjustment",
+    "planting_window_class",
     "validate_profile",
 ]

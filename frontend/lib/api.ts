@@ -1106,6 +1106,22 @@ export const api = {
   classifySoilAnalysis: (body: SoilAnalysisRequest) =>
     post<SoilAnalysisRequest, SoilAnalysisResult>("/agronomic/soil-analysis", body),
 
+  classifyPlantingWindow: (params: {
+    plantingDate: string;
+    municipality?: string;
+    fieldId?: number;
+  }) => {
+    const q = new URLSearchParams({ planting_date: params.plantingDate, crop: "soja", uf: "RS" });
+    if (params.fieldId != null) q.set("field_id", String(params.fieldId));
+    else if (params.municipality) q.set("municipality", params.municipality);
+    return get<{
+      profile_fragment: Record<string, string>;
+      within_zarc: boolean;
+      risk_level: number | null;
+      basis: string;
+    }>(`/agronomic/planting-window-class?${q.toString()}`);
+  },
+
   postAgronomicEstimate: (body: AgronomicEstimateRequest) =>
     post<AgronomicEstimateRequest, AgronomicEstimate>("/agronomic/estimate", body),
 

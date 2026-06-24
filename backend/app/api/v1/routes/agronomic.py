@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.v1.routes.regional_intelligence import _model
 from app.api.v1.routes.regional_intelligence import get_service as _regional_service
+from app.data.connectors.zarc_store import ZarcStore
 from app.domain.agronomy import (
     SoilAnalysis,
     UnknownFactor,
     classify_soil_analysis,
+    planting_window_class,
     validate_profile,
 )
 from app.infra.db import get_session
@@ -31,6 +35,7 @@ from app.services.regional_intelligence import (
     InvalidSeason,
     MunicipalityNotInRegion,
 )
+from app.services.zarc import MunicipalityNotInZarc, ZarcService, ZarcUnavailable
 
 router = APIRouter()
 
@@ -51,6 +56,50 @@ def agronomic_factors_endpoint(
     svc: AgronomicService = Depends(get_agronomic_service),
 ) -> list[FactorOut]:
     return [FactorOut(**f) for f in svc.factors_catalog()]
+
+
+@router.get("/agronomic/planting-window-class")
+def planting_window_class_endpoint(
+    planting_date: date = Query(..., description="Data de plantio pretendida"),
+    municipality: str | None = Query(None),
+    field_id: int | None = Query(None),
+    crop: str = Query("soja"),
+    uf: str = Query("RS"),
+    session: Session = Depends(get_session),
+) -> dict:
+    """Classifica a data de plantio (ZARC oficial) no fator 'janela_plantio'."""
+    code = _resolve_code(municipality, field_id, session)
+    zarc = ZarcService(store=ZarcStore())
+    try:
+        ev = zarc.evaluate_date(code, planting_date, crop, uf)
+    except (ZarcUnavailable, MunicipalityNotInZarc) as exc:
+        raise HTTPException(404, f"Sem janela ZARC para o município ({exc}).") from exc
+    value = planting_window_class(ev["within_zarc"], ev["risk_level"])
+    return {
+        "profile_fragment": {"janela_plantio": value},
+        "within_zarc": ev["within_zarc"],
+        "risk_level": ev["risk_level"],
+        "basis": ev["interpretation"],
+    }
+
+
+def _resolve_code(municipality: str | None, field_id: int | None, session: Session) -> int:
+    """Resolve o código do município por nome OU pelo talhão (deriva da fazenda)."""
+    if field_id is not None:
+        field = FarmRepository(session).get_field(field_id)
+        if field is None:
+            raise HTTPException(404, f"Talhão {field_id} inexistente.")
+        farm = FarmRepository(session).get_farm(field.farm_id)
+        if _model().municipalities().get(str(farm.municipality_code)) is None:
+            raise HTTPException(404, "Município do talhão fora da região coberta.")
+        return farm.municipality_code
+    if municipality is not None:
+        target = municipality.strip().lower()
+        for c, info in _model().municipalities().items():
+            if info["name"].lower() == target:
+                return int(c)
+        raise HTTPException(404, f"Município '{municipality}' fora da região.")
+    raise HTTPException(422, "Informe municipality ou field_id.")
 
 
 @router.post("/agronomic/soil-analysis", response_model=SoilAnalysisResponse)

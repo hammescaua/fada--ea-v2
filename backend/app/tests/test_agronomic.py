@@ -11,10 +11,36 @@ from app.domain.agronomy import (
     UnknownFactor,
     apply_adjustment,
     compute_adjustment,
+    planting_window_class,
 )
 from app.main import app
 
 pytestmark = pytest.mark.skipif(not settings.model_path.exists(), reason="modelo ausente")
+
+_ZARC = settings.data_dir / "zarc" / "soja_rs.json"
+
+
+def test_planting_window_class_mapping():
+    assert planting_window_class(True, 20) == "otima"
+    assert planting_window_class(True, 30) == "aceitavel"
+    assert planting_window_class(True, 40) == "aceitavel"
+    assert planting_window_class(False, None) == "fora"
+
+
+@pytest.mark.skipif(not _ZARC.exists(), reason="artefato ZARC ausente")
+def test_planting_window_class_endpoint():
+    c = TestClient(app)
+    inside = c.get(
+        "/api/v1/agronomic/planting-window-class"
+        "?municipality=Horizontina&planting_date=2026-11-15"
+    ).json()
+    assert inside["profile_fragment"]["janela_plantio"] in ("otima", "aceitavel")
+    assert inside["within_zarc"] is True
+    outside = c.get(
+        "/api/v1/agronomic/planting-window-class"
+        "?municipality=Horizontina&planting_date=2026-04-01"
+    ).json()
+    assert outside["profile_fragment"]["janela_plantio"] == "fora"
 
 
 # -- matriz / motor (puro) --------------------------------------------------

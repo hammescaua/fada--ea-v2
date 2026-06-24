@@ -89,6 +89,22 @@ export default function PerfilTalhaoPage() {
     },
   });
 
+  // Data de plantio → janela ZARC (preenche janela_plantio).
+  const [plantingDate, setPlantingDate] = React.useState("");
+  const [zarcBasis, setZarcBasis] = React.useState<string | null>(null);
+  const zarcMutation = useMutation({
+    mutationFn: () =>
+      api.classifyPlantingWindow({
+        plantingDate,
+        fieldId: fieldId ?? undefined,
+        municipality: fieldId === null ? municipality : undefined,
+      }),
+    onSuccess: (res) => {
+      setZarcBasis(res.basis);
+      setProfile((s) => ({ ...s, ...res.profile_fragment }));
+    },
+  });
+
   const estimate = useMutation<AgronomicEstimate, Error>({
     mutationFn: () => {
       const clean = Object.fromEntries(
@@ -220,6 +236,37 @@ export default function PerfilTalhaoPage() {
           {soilNotes && (
             <p className="text-xs italic text-muted-foreground">{soilNotes.disclaimer}</p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* DATA DE PLANTIO → JANELA ZARC */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Data de plantio pretendida → janela ZARC oficial</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="planting-date" className="text-xs">Data de plantio</Label>
+              <Input
+                id="planting-date"
+                type="date"
+                value={plantingDate}
+                onChange={(ev) => setPlantingDate(ev.target.value)}
+                className="w-44"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => plantingDate && zarcMutation.mutate()}
+              disabled={!plantingDate || (fieldId === null && !municipality) || zarcMutation.isPending}
+            >
+              {zarcMutation.isPending && <Spinner />}
+              Verificar ZARC e preencher
+            </Button>
+          </div>
+          {zarcMutation.isError && <ErrorBlock error={zarcMutation.error} />}
+          {zarcBasis && <p className="text-xs text-muted-foreground">{zarcBasis}</p>}
         </CardContent>
       </Card>
 

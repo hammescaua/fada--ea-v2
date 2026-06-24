@@ -152,6 +152,19 @@ class UnknownFactor(ValueError):
     pass
 
 
+def planting_window_class(within_zarc: bool, risk_level: int | None) -> str:
+    """Mapeia a avaliação ZARC de uma data para o fator 'janela_plantio'.
+
+    Dentro ao risco 20% (mais conservador) = ótima; dentro a 30/40% = aceitável;
+    fora da janela indicada = fora.
+    """
+    if not within_zarc or risk_level is None:
+        return "fora"
+    if risk_level <= 20:
+        return "otima"
+    return "aceitavel"
+
+
 def validate_profile(profile: dict[str, str]) -> None:
     """Garante que chaves e valores existem na matriz (entrada padronizada)."""
     for key, value in profile.items():
