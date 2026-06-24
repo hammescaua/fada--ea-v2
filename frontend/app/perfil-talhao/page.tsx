@@ -406,6 +406,48 @@ export default function PerfilTalhaoPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* RECOMENDAÇÕES ACIONÁVEIS */}
+      {e && e.recommendations.length > 0 && (
+        <Card className="border-green-200">
+          <CardHeader>
+            <CardTitle>O que mais vale corrigir neste talhão</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Ações que dependem de manejo (não estruturais), ordenadas pelo ganho de
+              produtividade ao corrigir. Estimativa agronômica — confira com seu agrônomo.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 font-medium">Ganho</th>
+                    <th className="px-3 py-2 font-medium">Ação</th>
+                    <th className="px-3 py-2 font-medium">De → para</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {e.recommendations.map((r) => (
+                    <tr key={r.key} className="border-t border-border">
+                      <td className="px-3 py-2 font-medium tabular-nums text-green-700">
+                        +{formatNumber(r.gain_sc_ha)} sc/ha
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          (+{formatNumber(r.gain_pct)}%)
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">{r.question}</td>
+                      <td className="px-3 py-2 text-muted-foreground">
+                        {r.current_label} → <span className="font-medium text-foreground">{r.target_label}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -92,6 +92,17 @@ class AdjustmentBlock(BaseModel):
     factors: list[AppliedFactorOut]
 
 
+class RecommendationOut(BaseModel):
+    key: str
+    question: str
+    current_label: str
+    target_label: str
+    gain_pct: float
+    gain_sc_ha: float
+    rationale: str
+    confidence: str
+
+
 class AgronomicEstimateResponse(BaseModel):
     municipality: str
     municipality_code: int
@@ -101,6 +112,7 @@ class AgronomicEstimateResponse(BaseModel):
     regional: PointInterval
     personalized: PersonalizedBlock
     adjustment: AdjustmentBlock
+    recommendations: list[RecommendationOut]
     climatic_risks: list[dict]
     data_sources: list[str]
     disclaimer: str

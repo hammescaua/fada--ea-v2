@@ -19,6 +19,11 @@ from app.domain.agronomy.profile import (
     planting_window_class,
     validate_profile,
 )
+from app.domain.agronomy.recommendations import (
+    MANAGEABLE_FACTORS,
+    Recommendation,
+    recommendations,
+)
 from app.domain.agronomy.soil import SoilAnalysis, classify_soil_analysis
 
 __all__ = [
@@ -29,7 +34,9 @@ __all__ = [
     "AppliedFactor",
     "CostAdjustmentResult",
     "Factor",
+    "MANAGEABLE_FACTORS",
     "PersonalizedEstimate",
+    "Recommendation",
     "SoilAnalysis",
     "UnknownFactor",
     "apply_adjustment",
@@ -37,5 +44,6 @@ __all__ = [
     "compute_adjustment",
     "compute_cost_adjustment",
     "planting_window_class",
+    "recommendations",
     "validate_profile",
 ]

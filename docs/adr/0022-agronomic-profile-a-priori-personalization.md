@@ -67,7 +67,15 @@ brief de safra, a margem passa a divergir por **produtividade e custo** do talh�
 revelando o **trade-off econômico** (ex.: cortar fungicida economiza custo mas
 derruba a margem). Persistido por talhão e integrado ao brief (`field_id`).
 
+## Extensão — recomendações acionáveis (o que vale corrigir)
+O perfil também gera **recomendações priorizadas**: para cada fator **acionável**
+(manejo/correção — exclui estruturais como textura/profundidade) abaixo do melhor
+nível, calcula-se o ganho marginal de produtividade ao corrigi-lo (sc/ha e %),
+ordenado por impacto (`domain/agronomy/recommendations`). Torna a personalização
+**objetiva e prescritiva** sem trair a honestidade (rotulada como estimativa
+agronômica). Reduzir atrito também já entregue: **análise de solo → classes CQFS**
+e **data de plantio → janela ZARC** pré-preenchem o perfil.
+
 ## Próximos passos
-Pré-preencher fatores a partir de fontes oficiais (EMBRAPA Solos →
-textura/profundidade; ZARC → janela; análise de solo → P/K/acidez). Quando houver
-colheitas, combinar a priori (perfil) e a posteriori (shrinkage) num só nível.
+EMBRAPA Solos → textura/profundidade por geolocalização. Quando houver colheitas,
+combinar a priori (perfil como *prior*) e a posteriori (shrinkage) num só nível.

@@ -244,6 +244,16 @@ export interface AgronomicEstimate {
     n_factors: number;
     factors: AppliedFactor[];
   };
+  recommendations: {
+    key: string;
+    question: string;
+    current_label: string;
+    target_label: string;
+    gain_pct: number;
+    gain_sc_ha: number;
+    rationale: string;
+    confidence: string;
+  }[];
   climatic_risks: ClimaticRisk[];
   data_sources: string[];
   disclaimer: string;

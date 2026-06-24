@@ -13,6 +13,7 @@ from app.domain.agronomy import (
     FACTORS,
     apply_adjustment,
     compute_adjustment,
+    recommendations,
 )
 from app.services.regional_intelligence import RegionalIntelligenceService
 
@@ -57,6 +58,7 @@ class AgronomicService:
             scenarios_sc_ha=scenarios,
             adjustment=adjustment,
         )
+        recs = recommendations(profile, est.personalized_point_sc_ha)
         return {
             "municipality": reg["municipality"],
             "municipality_code": reg["municipality_code"],
@@ -81,6 +83,7 @@ class AgronomicService:
                 "n_factors": adjustment.n_factors,
                 "factors": [vars(a) for a in adjustment.applied],
             },
+            "recommendations": [vars(r) for r in recs],
             "climatic_risks": reg["climatic_risks"],
             "data_sources": reg["data_sources"] + ["Perfil Agronômico FADA (ajuste a priori)"],
             "disclaimer": _DISCLAIMER,
