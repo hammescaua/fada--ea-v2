@@ -21,6 +21,7 @@ from app.api.v1.routes import (
     planting_date,
     regional_intelligence,
     system,
+    weather,
 )
 
 api_router = APIRouter()
@@ -37,6 +38,7 @@ api_router.include_router(adaptive.router, tags=["adaptive"])
 api_router.include_router(calibration.router, tags=["calibration"])
 api_router.include_router(insights.router, tags=["insights"])
 api_router.include_router(market.router, tags=["market"])
+api_router.include_router(weather.router, tags=["weather"])
 api_router.include_router(decisions.router, tags=["decisions"])
 api_router.include_router(dashboard.router, tags=["dashboard"])
 api_router.include_router(demo.router, tags=["demo"])

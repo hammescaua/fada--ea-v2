@@ -199,6 +199,43 @@ export interface AssistantResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Weather: previsão + alertas agronômicos (Open-Meteo) — proativo, com incerteza
+// ---------------------------------------------------------------------------
+
+export interface WeatherAlert {
+  code: string;
+  severity: string; // "info" | "atenção" | "alerta"
+  title: string;
+  detail: string;
+  starts_on: string;
+  ends_on: string;
+  confidence: string; // "alta" | "média" | "baixa"
+  evidence: Record<string, unknown>;
+}
+
+export interface DailyForecastPoint {
+  day: string;
+  tmin: number;
+  tmax: number;
+  precipitation_mm: number;
+  precipitation_prob: number;
+  wind_max_kmh: number;
+}
+
+export interface WeatherForecast {
+  latitude: number;
+  longitude: number;
+  n_days: number;
+  from_day: string | null;
+  to_day: string | null;
+  location_source: string | null;
+  alerts: WeatherAlert[];
+  forecast: DailyForecastPoint[];
+  source: string;
+  disclaimer: string;
+}
+
+// ---------------------------------------------------------------------------
 // Ground truth: farms / fields / crop-cycles / observations
 // ---------------------------------------------------------------------------
 
@@ -871,6 +908,9 @@ export const api = {
 
   getCostBenchmark: (cycleId: number) =>
     get<CostBenchmarkComparison>(`/crop-cycles/${cycleId}/cost-benchmark`),
+
+  getFarmWeather: (farmId: number) =>
+    get<WeatherForecast>(`/farms/${farmId}/weather`),
 
   getSystemStatus: () => get<SystemStatus>("/system/status"),
 
