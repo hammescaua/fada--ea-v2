@@ -256,6 +256,22 @@ export interface AgronomicEstimateRequest {
   profile: Record<string, string>;
 }
 
+export interface SoilAnalysisRequest {
+  p_mehlich?: number;
+  k_mehlich?: number;
+  clay_pct?: number;
+  ctc?: number;
+  ph_water?: number;
+  al_saturation_pct?: number;
+  organic_matter_pct?: number;
+}
+
+export interface SoilAnalysisResult {
+  profile_fragment: Record<string, string>;
+  notes: { factor: string; value: string; basis: string }[];
+  disclaimer: string;
+}
+
 // ---------------------------------------------------------------------------
 // Season brief: planejamento pré-safra (síntese de decisão)
 // ---------------------------------------------------------------------------
@@ -1086,6 +1102,9 @@ export const api = {
     get<WeatherForecast>(`/farms/${farmId}/weather`),
 
   getAgronomicFactors: () => get<AgronomicFactor[]>("/agronomic/factors"),
+
+  classifySoilAnalysis: (body: SoilAnalysisRequest) =>
+    post<SoilAnalysisRequest, SoilAnalysisResult>("/agronomic/soil-analysis", body),
 
   postAgronomicEstimate: (body: AgronomicEstimateRequest) =>
     post<AgronomicEstimateRequest, AgronomicEstimate>("/agronomic/estimate", body),

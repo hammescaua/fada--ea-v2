@@ -18,6 +18,7 @@ from app.domain.agronomy.profile import (
     compute_adjustment,
     validate_profile,
 )
+from app.domain.agronomy.soil import SoilAnalysis, classify_soil_analysis
 
 __all__ = [
     "COST_FACTOR_EFFECTS",
@@ -28,8 +29,10 @@ __all__ = [
     "CostAdjustmentResult",
     "Factor",
     "PersonalizedEstimate",
+    "SoilAnalysis",
     "UnknownFactor",
     "apply_adjustment",
+    "classify_soil_analysis",
     "compute_adjustment",
     "compute_cost_adjustment",
     "validate_profile",

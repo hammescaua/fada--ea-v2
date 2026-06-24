@@ -8,6 +8,7 @@ import {
   type AgronomicFactor,
   type Farm,
   type Field,
+  type SoilAnalysisResult,
 } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { MunicipalitySelect } from "@/components/municipality-select";
@@ -58,6 +59,33 @@ export default function PerfilTalhaoPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["field-profile", fieldId] });
       estimate.mutate();
+    },
+  });
+
+  // Pré-preenchimento por análise de solo (CQFS) → mescla fatores no perfil.
+  const [soil, setSoil] = React.useState<Record<string, string>>({});
+  const [soilNotes, setSoilNotes] = React.useState<SoilAnalysisResult | null>(null);
+  const soilFields: { key: string; label: string }[] = [
+    { key: "p_mehlich", label: "P (mg/dm³)" },
+    { key: "k_mehlich", label: "K (mg/dm³)" },
+    { key: "clay_pct", label: "Argila (%)" },
+    { key: "ctc", label: "CTC (cmolc/dm³)" },
+    { key: "ph_water", label: "pH (água)" },
+    { key: "al_saturation_pct", label: "Sat. Al — m (%)" },
+    { key: "organic_matter_pct", label: "MO (%)" },
+  ];
+  const soilMutation = useMutation<SoilAnalysisResult, Error>({
+    mutationFn: () => {
+      const body = Object.fromEntries(
+        Object.entries(soil)
+          .filter(([, v]) => v !== "" && !Number.isNaN(Number(v)))
+          .map(([k, v]) => [k, Number(v)])
+      );
+      return api.classifySoilAnalysis(body);
+    },
+    onSuccess: (res) => {
+      setSoilNotes(res);
+      setProfile((s) => ({ ...s, ...res.profile_fragment }));
     },
   });
 
@@ -141,6 +169,56 @@ export default function PerfilTalhaoPage() {
                 {answered} fator(es) respondido(s); os demais assumem o nível típico.
               </div>
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* PRÉ-PREENCHER PELA ANÁLISE DE SOLO (CQFS) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tem o laudo de análise de solo? Preencha automático</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Digite os valores do laudo — o FADA classifica fertilidade e acidez pelas
+            faixas CQFS-RS/SC e preenche os fatores correspondentes (você pode ajustar).
+          </p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            {soilFields.map((f) => (
+              <div key={f.key} className="space-y-1">
+                <Label htmlFor={f.key} className="text-xs">{f.label}</Label>
+                <Input
+                  id={f.key}
+                  type="number"
+                  step="0.1"
+                  value={soil[f.key] ?? ""}
+                  onChange={(ev) => setSoil((s) => ({ ...s, [f.key]: ev.target.value }))}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="outline" onClick={() => soilMutation.mutate()} disabled={soilMutation.isPending}>
+              {soilMutation.isPending && <Spinner />}
+              Classificar e preencher
+            </Button>
+            {soilNotes && (
+              <span className="text-sm text-green-700">
+                {soilNotes.notes.length} fator(es) preenchido(s) ✓
+              </span>
+            )}
+          </div>
+          {soilNotes && soilNotes.notes.length > 0 && (
+            <ul className="space-y-0.5 text-xs text-muted-foreground">
+              {soilNotes.notes.map((n) => (
+                <li key={n.factor}>
+                  <span className="font-medium">{n.factor} = {n.value}</span> — {n.basis}
+                </li>
+              ))}
+            </ul>
+          )}
+          {soilNotes && (
+            <p className="text-xs italic text-muted-foreground">{soilNotes.disclaimer}</p>
           )}
         </CardContent>
       </Card>

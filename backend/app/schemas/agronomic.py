@@ -32,6 +32,28 @@ class SaveProfileRequest(BaseModel):
     profile: dict[str, str] = Field(default_factory=dict)
 
 
+class SoilAnalysisRequest(BaseModel):
+    p_mehlich: float | None = Field(None, ge=0, description="Fósforo Mehlich-1 (mg/dm³)")
+    k_mehlich: float | None = Field(None, ge=0, description="Potássio Mehlich-1 (mg/dm³)")
+    clay_pct: float | None = Field(None, ge=0, le=100, description="Argila (%)")
+    ctc: float | None = Field(None, ge=0, description="CTC a pH 7 (cmolc/dm³)")
+    ph_water: float | None = Field(None, ge=0, le=14, description="pH em água")
+    al_saturation_pct: float | None = Field(None, ge=0, le=100, description="Saturação por Al (m%)")
+    organic_matter_pct: float | None = Field(None, ge=0, le=100, description="Matéria orgânica (%)")
+
+
+class SoilClassificationNote(BaseModel):
+    factor: str
+    value: str
+    basis: str
+
+
+class SoilAnalysisResponse(BaseModel):
+    profile_fragment: dict[str, str]
+    notes: list[SoilClassificationNote]
+    disclaimer: str
+
+
 class AgronomicProfileResponse(BaseModel):
     field_id: int
     profile: dict[str, str]

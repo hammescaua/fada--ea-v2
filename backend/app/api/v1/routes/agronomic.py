@@ -7,7 +7,12 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.routes.regional_intelligence import _model
 from app.api.v1.routes.regional_intelligence import get_service as _regional_service
-from app.domain.agronomy import UnknownFactor, validate_profile
+from app.domain.agronomy import (
+    SoilAnalysis,
+    UnknownFactor,
+    classify_soil_analysis,
+    validate_profile,
+)
 from app.infra.db import get_session
 from app.infra.repositories import AgronomicProfileRepository, FarmRepository
 from app.schemas.agronomic import (
@@ -16,6 +21,9 @@ from app.schemas.agronomic import (
     AgronomicProfileResponse,
     FactorOut,
     SaveProfileRequest,
+    SoilAnalysisRequest,
+    SoilAnalysisResponse,
+    SoilClassificationNote,
 )
 from app.services.agronomic import AgronomicService
 from app.services.regional_intelligence import (
@@ -43,6 +51,21 @@ def agronomic_factors_endpoint(
     svc: AgronomicService = Depends(get_agronomic_service),
 ) -> list[FactorOut]:
     return [FactorOut(**f) for f in svc.factors_catalog()]
+
+
+@router.post("/agronomic/soil-analysis", response_model=SoilAnalysisResponse)
+def soil_analysis_endpoint(body: SoilAnalysisRequest) -> SoilAnalysisResponse:
+    """Classifica um laudo de análise de solo (CQFS-RS/SC) em fatores do perfil."""
+    fragment, notes = classify_soil_analysis(SoilAnalysis(**body.model_dump()))
+    return SoilAnalysisResponse(
+        profile_fragment=fragment,
+        notes=[SoilClassificationNote(**n) for n in notes],
+        disclaimer=(
+            "Classificação orientativa segundo CQFS-RS/SC (2016), ancorada no teor "
+            "crítico. Confirme a recomendação com seu agrônomo. Você pode ajustar "
+            "qualquer fator manualmente."
+        ),
+    )
 
 
 @router.post("/agronomic/estimate", response_model=AgronomicEstimateResponse)
