@@ -8,12 +8,18 @@ from sqlalchemy.orm import Session
 from app.api.v1.routes.regional_intelligence import _model
 from app.infra.db import get_session
 from app.infra.repositories import EventRepository, FarmRepository
+from app.schemas.benchmark import (
+    CostBenchmarkComparisonResponse,
+    CostComparisonOut,
+    CostComponentOut,
+)
 from app.schemas.cost import (
     CostBreakdownOut,
     FinancialsRequest,
     FinancialsResponse,
     ScenarioResultOut,
 )
+from app.services.benchmark import BenchmarkService, BenchmarkUnavailable
 from app.services.cost import AreaUnknown, CostService, CycleNotFound, PriceUnknown
 from app.services.market import MarketService
 
@@ -27,6 +33,10 @@ def get_cost_service(session: Session = Depends(get_session)) -> CostService:
         model=_model(),
         market=MarketService(),
     )
+
+
+def get_benchmark_service() -> BenchmarkService:
+    return BenchmarkService()
 
 
 def _handle(exc: Exception) -> HTTPException:
@@ -71,4 +81,38 @@ def financials_endpoint(
         break_even_yield_sc_ha=result["break_even_yield_sc_ha"],
         yield_source=result["yield_source"],
         scenarios=[ScenarioResultOut(**vars(s)) for s in result["scenarios"]],
+    )
+
+
+@router.get(
+    "/crop-cycles/{cycle_id}/cost-benchmark",
+    response_model=CostBenchmarkComparisonResponse,
+)
+def cost_benchmark_comparison_endpoint(
+    cycle_id: int,
+    svc: CostService = Depends(get_cost_service),
+    bench: BenchmarkService = Depends(get_benchmark_service),
+) -> CostBenchmarkComparisonResponse:
+    try:
+        breakdown, crop, uf = svc.cost_context(cycle_id)
+    except (CycleNotFound, AreaUnknown) as exc:
+        raise _handle(exc) from exc
+    if uf is None:
+        raise HTTPException(422, "UF do município desconhecida para o benchmark.")
+    try:
+        data = bench.compare_cost(breakdown.cost_per_hectare, crop, uf)
+    except BenchmarkUnavailable as exc:
+        raise HTTPException(
+            404,
+            f"Sem benchmark de custo para '{crop}/{uf}'. Rode o pipeline "
+            "build_cost_benchmark para popular o artefato.",
+        ) from exc
+    return CostBenchmarkComparisonResponse(
+        **{k: data[k] for k in (
+            "crop", "uf", "safra", "technology", "source", "fetched_at",
+            "coe_per_ha", "cot_per_ha", "ct_per_ha", "actual_cost_per_ha",
+            "primary", "disclaimer",
+        )},
+        references={k: CostComparisonOut(**vars(v)) for k, v in data["references"].items()},
+        components=[CostComponentOut(**vars(c)) for c in data["components"]],
     )

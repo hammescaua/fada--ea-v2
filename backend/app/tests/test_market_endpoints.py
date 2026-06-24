@@ -14,6 +14,7 @@ from app.infra.db import Base, get_session
 from app.main import app
 
 _PRICE_ARTIFACT = settings.data_dir / "market" / "soja_price.json"
+_COST_ARTIFACT = settings.data_dir / "benchmarks" / "soja_rs_cost.json"
 pytestmark = pytest.mark.skipif(
     not settings.model_path.exists() or not _PRICE_ARTIFACT.exists(),
     reason="modelo ou artefato de preço ausente",
@@ -85,3 +86,29 @@ def test_financials_explicit_price_wins(client):
                      json={"price_per_bag": 125}).json()
     assert fin["price_per_bag"] == 125
     assert fin["price_source"] == "informado pelo produtor"
+
+
+@pytest.mark.skipif(not _COST_ARTIFACT.exists(), reason="benchmark de custo ausente")
+def test_cost_benchmark_endpoint():
+    r = TestClient(app).get("/api/v1/market/cost-benchmark?crop=soja&uf=RS")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["source"] == "CONAB"
+    assert body["coe_per_ha"] > 0 and body["ct_per_ha"] >= body["coe_per_ha"]
+    assert len(body["components"]) >= 1
+
+
+@pytest.mark.skipif(not _COST_ARTIFACT.exists(), reason="benchmark de custo ausente")
+def test_cost_benchmark_comparison_endpoint(client):
+    cid = _setup_cycle(client)
+    # 100 ha; R$ 550.000 -> R$ 5.500/ha: acima do COE (+18%), abaixo do CT (-17%).
+    client.post(f"/api/v1/crop-cycles/{cid}/events",
+               json={"event_type": "BASE_FERTILIZATION", "event_date": "2026-11-01",
+                     "cost": 550000})
+    r = client.get(f"/api/v1/crop-cycles/{cid}/cost-benchmark")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["actual_cost_per_ha"] == 5500.0
+    assert body["primary"] == "coe"
+    assert body["references"]["coe"]["descriptor"] == "acima"
+    assert body["references"]["ct"]["descriptor"] == "abaixo"

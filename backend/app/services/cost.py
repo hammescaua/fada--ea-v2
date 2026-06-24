@@ -16,6 +16,7 @@ from app.domain.cost import (
     cost_breakdown,
     scenario_analysis,
 )
+from app.core.geo import uf_from_ibge_municipality
 from app.domain.yield_estimation import RegionalYieldModel
 from app.infra.repositories import EventRepository, FarmRepository
 from app.services.market import MarketService
@@ -82,6 +83,14 @@ class CostService:
         cycle = self._cycle_or_raise(cycle_id)
         events = self.events.list_by_cycle(cycle_id)
         return cost_breakdown(events, self._area(cycle), self._expected_yield(cycle))
+
+    def cost_context(self, cycle_id: int) -> tuple[CostBreakdown, str, str | None]:
+        """Custo da safra + (cultura, UF) para localizar referências regionais."""
+        cycle = self._cycle_or_raise(cycle_id)
+        events = self.events.list_by_cycle(cycle_id)
+        breakdown = cost_breakdown(events, self._area(cycle), self._expected_yield(cycle))
+        uf = uf_from_ibge_municipality(self._municipality_code(cycle))
+        return breakdown, cycle.crop, uf
 
     def _resolve_price(self, price_per_bag: float | None, cycle) -> tuple[float, str]:
         """Preço efetivo e sua origem. Prioridade: produtor > preço esperado da

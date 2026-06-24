@@ -4,6 +4,7 @@ import * as React from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   api,
+  type CostBenchmarkComparison,
   type CostBreakdown,
   type Financials,
   type MarketPrice,
@@ -69,6 +70,14 @@ export default function FinanceiroPage() {
     queryKey: ["crop-cycle-cost", cycleId],
     queryFn: () => api.getCropCycleCost(cycleId as number),
     enabled: cycleId !== null,
+  });
+
+  // Benchmark de custo de referência (CONAB) comparado ao custo real da safra.
+  const benchmarkQuery = useQuery<CostBenchmarkComparison>({
+    queryKey: ["cost-benchmark", cycleId],
+    queryFn: () => api.getCostBenchmark(cycleId as number),
+    enabled: cycleId !== null,
+    retry: false,
   });
 
   const financials = useMutation<Financials>({
@@ -151,6 +160,96 @@ export default function FinanceiroPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* BENCHMARK DE CUSTO (CONAB) — referência regional vs custo real da safra */}
+          {benchmarkQuery.data && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Custo vs referência {benchmarkQuery.data.source} (soja/
+                  {benchmarkQuery.data.uf}, {benchmarkQuery.data.safra})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Stat
+                  label="Seu custo por hectare"
+                  value={`${formatBRL(benchmarkQuery.data.actual_cost_per_ha)}/ha`}
+                  hint="Custo registrado nesta safra (eventos com custo)."
+                />
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-2 font-medium">Referência</th>
+                        <th className="px-3 py-2 font-medium">R$/ha</th>
+                        <th className="px-3 py-2 font-medium">Seu × ref.</th>
+                        <th className="px-3 py-2 font-medium">Situação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(["coe", "cot", "ct"] as const).map((key) => {
+                        const ref = benchmarkQuery.data!.references[key];
+                        if (!ref) return null;
+                        const isPrimary = benchmarkQuery.data!.primary === key;
+                        // Custo "abaixo" da referência é bom; "acima" é alerta.
+                        const color =
+                          ref.descriptor === "abaixo"
+                            ? "text-green-700"
+                            : ref.descriptor === "acima"
+                              ? "text-red-700"
+                              : "text-muted-foreground";
+                        return (
+                          <tr
+                            key={key}
+                            className={
+                              "border-t border-border " +
+                              (isPrimary ? "bg-brand-50/40" : "")
+                            }
+                          >
+                            <td className="px-3 py-2">
+                              {ref.reference_label}
+                              {isPrimary && (
+                                <span className="ml-2 rounded bg-brand-100 px-1.5 py-0.5 text-[10px] uppercase text-brand-700">
+                                  principal
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 tabular-nums">
+                              {formatBRL(ref.reference_per_ha)}
+                            </td>
+                            <td className="px-3 py-2 tabular-nums">
+                              {formatNumber(ref.ratio_pct)}%
+                            </td>
+                            <td className={"px-3 py-2 font-medium " + color}>
+                              {ref.descriptor}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <details>
+                  <summary className="cursor-pointer text-xs text-brand-700">
+                    Principais componentes da referência
+                  </summary>
+                  <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                    {benchmarkQuery.data.components.map((c) => (
+                      <li key={c.item} className="flex justify-between gap-4">
+                        <span>{c.item}</span>
+                        <span className="tabular-nums">
+                          {formatBRL(c.value_per_ha)}/ha ({formatNumber(c.share_pct)}%)
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+                <p className="text-xs text-muted-foreground">
+                  {benchmarkQuery.data.disclaimer}
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* PREÇO DE MERCADO (CEPEA) — dado público oficial, datado, sem forecast */}
           {marketQuery.data && (

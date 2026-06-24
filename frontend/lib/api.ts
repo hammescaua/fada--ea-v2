@@ -407,6 +407,40 @@ export interface MarketPrice {
   disclaimer: string;
 }
 
+// Benchmark de custo de produção (referência regional CONAB) — sem juízo de valor.
+
+export interface CostComponent {
+  item: string;
+  value_per_ha: number;
+  share_pct: number;
+}
+
+export interface CostComparison {
+  actual_per_ha: number;
+  reference_label: string;
+  reference_per_ha: number;
+  delta_per_ha: number;
+  ratio_pct: number;
+  descriptor: string; // "abaixo" | "na média" | "acima"
+}
+
+export interface CostBenchmarkComparison {
+  crop: string;
+  uf: string;
+  safra: string;
+  technology: string;
+  source: string;
+  fetched_at: string;
+  coe_per_ha: number;
+  cot_per_ha: number;
+  ct_per_ha: number;
+  actual_cost_per_ha: number;
+  primary: string; // chave de references considerada principal (ex.: "coe")
+  references: Record<string, CostComparison>;
+  components: CostComponent[];
+  disclaimer: string;
+}
+
 export type ProductCategory =
   | "FERTILIZER"
   | "SEED"
@@ -834,6 +868,9 @@ export const api = {
 
   getMarketPrice: (crop = "soja") =>
     get<MarketPrice>(`/market/price?crop=${encodeURIComponent(crop)}`),
+
+  getCostBenchmark: (cycleId: number) =>
+    get<CostBenchmarkComparison>(`/crop-cycles/${cycleId}/cost-benchmark`),
 
   getSystemStatus: () => get<SystemStatus>("/system/status"),
 
