@@ -199,6 +199,64 @@ export interface AssistantResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Agronomic profile: personalização a priori (perfil padronizado do talhão)
+// ---------------------------------------------------------------------------
+
+export interface AgronomicFactorOption {
+  value: string;
+  label: string;
+  effect_pct: number;
+}
+
+export interface AgronomicFactor {
+  key: string;
+  question: string;
+  rationale: string;
+  confidence: string;
+  options: AgronomicFactorOption[];
+}
+
+export interface AppliedFactor {
+  key: string;
+  question: string;
+  option_label: string;
+  effect_pct: number;
+  rationale: string;
+  confidence: string;
+}
+
+export interface AgronomicEstimate {
+  municipality: string;
+  municipality_code: number;
+  crop: string;
+  season: string;
+  harvest_year: number;
+  regional: { point_sc_ha: number; interval_sc_ha: [number, number] };
+  personalized: {
+    point_sc_ha: number;
+    interval_sc_ha: [number, number];
+    scenarios: Scenario[];
+  };
+  adjustment: {
+    multiplier: number;
+    total_effect_pct: number;
+    clamped: boolean;
+    n_factors: number;
+    factors: AppliedFactor[];
+  };
+  climatic_risks: ClimaticRisk[];
+  data_sources: string[];
+  disclaimer: string;
+}
+
+export interface AgronomicEstimateRequest {
+  municipality: string;
+  crop?: string;
+  season?: string;
+  profile: Record<string, string>;
+}
+
+// ---------------------------------------------------------------------------
 // Season brief: planejamento pré-safra (síntese de decisão)
 // ---------------------------------------------------------------------------
 
@@ -1002,6 +1060,11 @@ export const api = {
 
   getFarmWeather: (farmId: number) =>
     get<WeatherForecast>(`/farms/${farmId}/weather`),
+
+  getAgronomicFactors: () => get<AgronomicFactor[]>("/agronomic/factors"),
+
+  postAgronomicEstimate: (body: AgronomicEstimateRequest) =>
+    post<AgronomicEstimateRequest, AgronomicEstimate>("/agronomic/estimate", body),
 
   getSeasonBrief: (municipality: string, season = "2026/27", pricePerBag?: number) => {
     const q = new URLSearchParams({ municipality, crop: "soja", uf: "RS", season });

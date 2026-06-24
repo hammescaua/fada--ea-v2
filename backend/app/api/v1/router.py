@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1.routes import (
     adaptive,
+    agronomic,
     assistant,
     calibration,
     capture,
@@ -37,6 +38,7 @@ api_router.include_router(capture.router, tags=["quick-capture"])
 api_router.include_router(planning.router, tags=["planning"])
 api_router.include_router(cost.router, tags=["cost"])
 api_router.include_router(adaptive.router, tags=["adaptive"])
+api_router.include_router(agronomic.router, tags=["agronomic"])
 api_router.include_router(calibration.router, tags=["calibration"])
 api_router.include_router(insights.router, tags=["insights"])
 api_router.include_router(market.router, tags=["market"])
