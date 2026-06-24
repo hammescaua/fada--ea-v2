@@ -362,13 +362,49 @@ export interface FinancialScenario {
 export interface Financials {
   breakdown: CostBreakdown;
   price_per_bag: number;
+  price_source: string;
   break_even_yield_sc_ha: number;
   yield_source: string;
   scenarios: FinancialScenario[];
 }
 
 export interface FinancialsRequest {
-  price_per_bag: number;
+  // Opcional: se omitido, o backend usa o preço esperado da safra ou a cotação
+  // CEPEA/ESALQ ao vivo (data pública oficial).
+  price_per_bag?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Market: preço observado de fonte oficial (CEPEA/ESALQ) — sem forecast
+// ---------------------------------------------------------------------------
+
+export interface PricePoint {
+  day: string;
+  value: number;
+}
+
+export interface PriceSummary {
+  latest_value: number;
+  latest_day: string;
+  n_points: number;
+  window_days: number;
+  mean_value: number;
+  min_value: number;
+  max_value: number;
+  change_pct: number;
+  staleness_days: number;
+  is_stale: boolean;
+}
+
+export interface MarketPrice {
+  crop: string;
+  source: string;
+  place: string;
+  unit: string;
+  fetched_at: string;
+  summary: PriceSummary;
+  series: PricePoint[];
+  disclaimer: string;
 }
 
 export type ProductCategory =
@@ -795,6 +831,9 @@ export interface DemoSeedResult {
 
 export const api = {
   getMunicipalities: () => get<Municipality[]>("/municipalities"),
+
+  getMarketPrice: (crop = "soja") =>
+    get<MarketPrice>(`/market/price?crop=${encodeURIComponent(crop)}`),
 
   getSystemStatus: () => get<SystemStatus>("/system/status"),
 

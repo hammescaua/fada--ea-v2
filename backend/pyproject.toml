@@ -22,6 +22,9 @@ dependencies = [
 pg = ["psycopg[binary]>=3.1"]
 # Camada LLM opcional do orchestrator/explainer (ADR-0002/0010).
 llm = ["anthropic>=0.39"]
+# Ingestão de dados públicos oficiais via agrobr (CEPEA/CONAB/ZARC/INMET/IBGE…).
+# SÓ usado nos pipelines offline (assíncrono, pandas/duckdb) — nunca no runtime.
+data = ["agrobr>=1.1"]
 # Dependências pesadas usadas SÓ no pipeline de treino/ingestão — não no runtime da API.
 # O artefato do modelo é JSON inspecionável; a API faz inferência só com numpy.
 ml = [

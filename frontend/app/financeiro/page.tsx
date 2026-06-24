@@ -6,6 +6,7 @@ import {
   api,
   type CostBreakdown,
   type Financials,
+  type MarketPrice,
 } from "@/lib/api";
 import {
   CostByCategoryChart,
@@ -45,7 +46,24 @@ function Stat({
 export default function FinanceiroPage() {
   const ctx = useFarmContext();
   const cycleId = ctx.cropCycleId; // safra vem do contexto global (sem digitar ID)
-  const [priceInput, setPriceInput] = React.useState("125");
+  const [priceInput, setPriceInput] = React.useState("");
+  const [priceTouched, setPriceTouched] = React.useState(false);
+
+  // Preço observado de fonte oficial (CEPEA/ESALQ). Não é previsão: é o último
+  // valor publicado, datado — usado para pré-preencher o cenário sem o produtor digitar.
+  const marketQuery = useQuery<MarketPrice>({
+    queryKey: ["market-price", "soja"],
+    queryFn: () => api.getMarketPrice("soja"),
+    staleTime: 1000 * 60 * 30,
+    retry: false,
+  });
+
+  // Pré-preenche o campo com a cotação ao vivo (até o produtor digitar algo).
+  React.useEffect(() => {
+    if (!priceTouched && marketQuery.data) {
+      setPriceInput(String(marketQuery.data.summary.latest_value));
+    }
+  }, [marketQuery.data, priceTouched]);
 
   const costQuery = useQuery<CostBreakdown>({
     queryKey: ["crop-cycle-cost", cycleId],
@@ -56,7 +74,8 @@ export default function FinanceiroPage() {
   const financials = useMutation<Financials>({
     mutationFn: () =>
       api.getCropCycleFinancials(cycleId as number, {
-        price_per_bag: Number(priceInput),
+        // Vazio → backend usa a cotação CEPEA ao vivo (ou o preço esperado da safra).
+        price_per_bag: priceInput ? Number(priceInput) : undefined,
       }),
   });
 
@@ -133,6 +152,56 @@ export default function FinanceiroPage() {
             </CardContent>
           </Card>
 
+          {/* PREÇO DE MERCADO (CEPEA) — dado público oficial, datado, sem forecast */}
+          {marketQuery.data && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Preço de mercado — {marketQuery.data.source}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <Stat
+                    label="Cotação atual"
+                    value={`${formatBRL(marketQuery.data.summary.latest_value)}/sc`}
+                    hint={`${marketQuery.data.place} · ${marketQuery.data.summary.latest_day}`}
+                  />
+                  <Stat
+                    label={`Variação (${marketQuery.data.summary.window_days} d)`}
+                    value={
+                      <span
+                        className={
+                          marketQuery.data.summary.change_pct >= 0
+                            ? "text-green-700"
+                            : "text-red-700"
+                        }
+                      >
+                        {marketQuery.data.summary.change_pct >= 0 ? "+" : ""}
+                        {formatNumber(marketQuery.data.summary.change_pct)}%
+                      </span>
+                    }
+                    hint={`Faixa: ${formatBRL(
+                      marketQuery.data.summary.min_value
+                    )}–${formatBRL(marketQuery.data.summary.max_value)}`}
+                  />
+                  <Stat
+                    label="Média do período"
+                    value={`${formatBRL(marketQuery.data.summary.mean_value)}/sc`}
+                    hint={`${marketQuery.data.summary.n_points} cotações`}
+                  />
+                </div>
+                {marketQuery.data.summary.is_stale && (
+                  <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    Cotação com {marketQuery.data.summary.staleness_days} dias de
+                    defasagem — atualize a fonte antes de decidir.
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {marketQuery.data.disclaimer}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* FINANCIALS / SCENARIOS */}
           <Card>
             <CardHeader>
@@ -142,26 +211,35 @@ export default function FinanceiroPage() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!priceInput) return;
                   financials.mutate();
                 }}
                 className="flex flex-col gap-3 sm:flex-row sm:items-end"
               >
                 <div className="flex-1 space-y-2">
-                  <Label htmlFor="price2">Preço da saca (R$/sc)</Label>
+                  <Label htmlFor="price2">
+                    Preço da saca (R$/sc){" "}
+                    <span className="font-normal text-muted-foreground">
+                      — em branco usa a cotação CEPEA
+                    </span>
+                  </Label>
                   <Input
                     id="price2"
                     type="number"
                     min="0"
                     step="0.01"
                     value={priceInput}
-                    onChange={(e) => setPriceInput(e.target.value)}
+                    placeholder={
+                      marketQuery.data
+                        ? String(marketQuery.data.summary.latest_value)
+                        : "ex.: 130,00"
+                    }
+                    onChange={(e) => {
+                      setPriceTouched(true);
+                      setPriceInput(e.target.value);
+                    }}
                   />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={!priceInput || financials.isPending}
-                >
+                <Button type="submit" disabled={financials.isPending}>
                   {financials.isPending && <Spinner />}
                   Calcular cenários
                 </Button>
@@ -182,6 +260,7 @@ export default function FinanceiroPage() {
                     <Stat
                       label="Preço considerado"
                       value={`${formatBRL(fin.price_per_bag)}/sc`}
+                      hint={fin.price_source}
                     />
                   </div>
 

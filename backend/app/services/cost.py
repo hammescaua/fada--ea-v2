@@ -18,6 +18,7 @@ from app.domain.cost import (
 )
 from app.domain.yield_estimation import RegionalYieldModel
 from app.infra.repositories import EventRepository, FarmRepository
+from app.services.market import MarketService
 
 
 class CycleNotFound(Exception):
@@ -28,11 +29,16 @@ class AreaUnknown(Exception):
     pass
 
 
+class PriceUnknown(Exception):
+    """Nem o produtor informou preço, nem há cotação oficial coletada."""
+
+
 @dataclass
 class CostService:
     farms: FarmRepository
     events: EventRepository
     model: RegionalYieldModel
+    market: MarketService | None = None
 
     def _cycle_or_raise(self, cycle_id: int):
         cycle = self.farms.get_cycle(cycle_id)
@@ -77,10 +83,25 @@ class CostService:
         events = self.events.list_by_cycle(cycle_id)
         return cost_breakdown(events, self._area(cycle), self._expected_yield(cycle))
 
-    def financials(self, cycle_id: int, price_per_bag: float) -> dict:
+    def _resolve_price(self, price_per_bag: float | None, cycle) -> tuple[float, str]:
+        """Preço efetivo e sua origem. Prioridade: produtor > preço esperado da
+        safra > cotação oficial ao vivo (CEPEA). Sem nenhum, falha explicitamente."""
+        if price_per_bag is not None and price_per_bag > 0:
+            return price_per_bag, "informado pelo produtor"
+        expected = getattr(cycle, "expected_price_per_bag", None)
+        if expected:
+            return float(expected), "preço esperado cadastrado na safra"
+        if self.market is not None:
+            live = self.market.latest_price_per_bag(cycle.crop)
+            if live:
+                return live, "cotação CEPEA/ESALQ (último observado)"
+        raise PriceUnknown(cycle.id)
+
+    def financials(self, cycle_id: int, price_per_bag: float | None = None) -> dict:
         cycle = self._cycle_or_raise(cycle_id)
         events = self.events.list_by_cycle(cycle_id)
         area = self._area(cycle)
+        price_per_bag, price_source = self._resolve_price(price_per_bag, cycle)
         breakdown = cost_breakdown(events, area, self._expected_yield(cycle))
         break_even = calculate_break_even_yield(breakdown.cost_per_hectare, price_per_bag)
 
@@ -98,6 +119,7 @@ class CostService:
         return {
             "breakdown": breakdown,
             "price_per_bag": price_per_bag,
+            "price_source": price_source,
             "break_even_yield_sc_ha": break_even,
             "yield_source": yield_source,
             "scenarios": scenarios,

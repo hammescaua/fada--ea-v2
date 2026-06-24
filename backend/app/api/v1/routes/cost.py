@@ -14,14 +14,18 @@ from app.schemas.cost import (
     FinancialsResponse,
     ScenarioResultOut,
 )
-from app.services.cost import AreaUnknown, CostService, CycleNotFound
+from app.services.cost import AreaUnknown, CostService, CycleNotFound, PriceUnknown
+from app.services.market import MarketService
 
 router = APIRouter()
 
 
 def get_cost_service(session: Session = Depends(get_session)) -> CostService:
     return CostService(
-        farms=FarmRepository(session), events=EventRepository(session), model=_model()
+        farms=FarmRepository(session),
+        events=EventRepository(session),
+        model=_model(),
+        market=MarketService(),
     )
 
 
@@ -31,6 +35,12 @@ def _handle(exc: Exception) -> HTTPException:
     if isinstance(exc, AreaUnknown):
         return HTTPException(
             422, "Área desconhecida: informe area_ha no CropCycle ou no Field."
+        )
+    if isinstance(exc, PriceUnknown):
+        return HTTPException(
+            422,
+            "Sem preço: informe price_per_bag, cadastre o preço esperado na safra, "
+            "ou rode o pipeline de cotação (build_market_snapshot).",
         )
     raise exc
 
@@ -52,11 +62,12 @@ def financials_endpoint(
 ) -> FinancialsResponse:
     try:
         result = svc.financials(cycle_id, body.price_per_bag)
-    except (CycleNotFound, AreaUnknown) as exc:
+    except (CycleNotFound, AreaUnknown, PriceUnknown) as exc:
         raise _handle(exc) from exc
     return FinancialsResponse(
         breakdown=CostBreakdownOut(**vars(result["breakdown"])),
         price_per_bag=result["price_per_bag"],
+        price_source=result["price_source"],
         break_even_yield_sc_ha=result["break_even_yield_sc_ha"],
         yield_source=result["yield_source"],
         scenarios=[ScenarioResultOut(**vars(s)) for s in result["scenarios"]],
