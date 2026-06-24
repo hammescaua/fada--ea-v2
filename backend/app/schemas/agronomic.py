@@ -28,6 +28,15 @@ class AgronomicEstimateRequest(BaseModel):
     profile: dict[str, str] = Field(default_factory=dict)
 
 
+class SaveProfileRequest(BaseModel):
+    profile: dict[str, str] = Field(default_factory=dict)
+
+
+class AgronomicProfileResponse(BaseModel):
+    field_id: int
+    profile: dict[str, str]
+
+
 class AppliedFactorOut(BaseModel):
     key: str
     question: str

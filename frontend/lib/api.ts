@@ -272,6 +272,14 @@ export interface SeasonBrief {
     scenarios: Scenario[];
     risks: ClimaticRisk[];
     n_years: number;
+    personalized?: boolean;
+    adjustment?: {
+      multiplier: number;
+      total_effect_pct: number;
+      regional_point_sc_ha: number;
+      n_factors: number;
+      factors: AppliedFactor[];
+    } | null;
   };
   planting: {
     zarc: {
@@ -831,6 +839,16 @@ async function patch<TBody, TResp>(path: string, body: TBody): Promise<TResp> {
   );
 }
 
+async function put<TBody, TResp>(path: string, body: TBody): Promise<TResp> {
+  return handle<TResp>(
+    await request(path, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body),
+    })
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Field Intelligence + Insights
 // ---------------------------------------------------------------------------
@@ -1066,8 +1084,30 @@ export const api = {
   postAgronomicEstimate: (body: AgronomicEstimateRequest) =>
     post<AgronomicEstimateRequest, AgronomicEstimate>("/agronomic/estimate", body),
 
+  getFieldProfile: (fieldId: number) =>
+    get<{ field_id: number; profile: Record<string, string> }>(
+      `/fields/${fieldId}/agronomic-profile`
+    ),
+
+  saveFieldProfile: (fieldId: number, profile: Record<string, string>) =>
+    put<{ profile: Record<string, string> }, { field_id: number; profile: Record<string, string> }>(
+      `/fields/${fieldId}/agronomic-profile`,
+      { profile }
+    ),
+
+  getFieldEstimate: (fieldId: number, season = "2026/27") =>
+    get<AgronomicEstimate>(`/fields/${fieldId}/estimate?season=${encodeURIComponent(season)}`),
+
   getSeasonBrief: (municipality: string, season = "2026/27", pricePerBag?: number) => {
     const q = new URLSearchParams({ municipality, crop: "soja", uf: "RS", season });
+    if (pricePerBag) q.set("price_per_bag", String(pricePerBag));
+    return get<SeasonBrief>(`/planning/season-brief?${q.toString()}`);
+  },
+
+  getSeasonBriefForField: (fieldId: number, season = "2026/27", pricePerBag?: number) => {
+    const q = new URLSearchParams({
+      field_id: String(fieldId), crop: "soja", uf: "RS", season,
+    });
     if (pricePerBag) q.set("price_per_bag", String(pricePerBag));
     return get<SeasonBrief>(`/planning/season-brief?${q.toString()}`);
   },

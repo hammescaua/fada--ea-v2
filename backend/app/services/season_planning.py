@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.domain.agronomy import apply_adjustment, compute_adjustment
 from app.domain.planning.season import season_margin
 from app.services.benchmark import BenchmarkService, BenchmarkUnavailable
 from app.services.market import MarketService, PriceUnavailable
@@ -37,19 +38,42 @@ class SeasonPlanningService:
         season: str = "2026/27",
         uf: str = "RS",
         price_per_bag: float | None = None,
+        profile: dict[str, str] | None = None,
     ) -> dict:
         # 1) Produtividade regional (obrigatória — é a âncora do brief).
         reg = self.regional.run(municipality, crop, season)
         code = reg["municipality_code"]
         scenarios = {s["name"]: s["yield_sc_ha"] for s in reg["scenarios"]}
         expected = reg["estimated_yield_sc_ha"]
+        interval = list(reg["confidence_interval_sc_ha"])
 
+        # 1b) Personalização a priori pelo Perfil Agronômico (ADR-0022), se houver.
+        # Quando há perfil, a produtividade — e portanto a margem — passam a ser do
+        # talhão, não da média regional. Incerteza alarga (nunca estreita).
+        adjustment_block = None
+        if profile:
+            adj = compute_adjustment(profile)
+            est = apply_adjustment(expected, tuple(interval), scenarios, adj)
+            expected = est.personalized_point_sc_ha
+            interval = list(est.personalized_interval_sc_ha)
+            scenarios = est.scenarios_sc_ha
+            adjustment_block = {
+                "multiplier": est.multiplier,
+                "total_effect_pct": est.total_effect_pct,
+                "regional_point_sc_ha": est.regional_point_sc_ha,
+                "n_factors": adj.n_factors,
+                "factors": [vars(a) for a in adj.applied],
+            }
+
+        scenarios_payload = [{"name": n, "yield_sc_ha": y} for n, y in scenarios.items()]
         yield_block = {
             "expected_sc_ha": expected,
-            "interval_sc_ha": list(reg["confidence_interval_sc_ha"]),
-            "scenarios": reg["scenarios"],
+            "interval_sc_ha": interval,
+            "scenarios": scenarios_payload,
             "risks": reg["climatic_risks"],
             "n_years": reg["n_years"],
+            "personalized": adjustment_block is not None,
+            "adjustment": adjustment_block,
         }
 
         # 2) Janela de plantio: ZARC oficial + melhor data do otimizador (opcionais).

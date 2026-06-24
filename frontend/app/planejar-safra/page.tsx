@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useMutation } from "@tanstack/react-query";
-import { api, type SeasonBrief } from "@/lib/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { api, type Farm, type Field, type SeasonBrief } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { MunicipalitySelect } from "@/components/municipality-select";
 import { ErrorBlock, Spinner } from "@/components/states";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { formatBRL, formatNumber } from "@/lib/utils";
 
@@ -40,27 +41,76 @@ export default function PlanejarSafraPage() {
   const [municipality, setMunicipality] = React.useState("");
   const [season, setSeason] = React.useState("2026/27");
   const [price, setPrice] = React.useState("");
+  const [farmId, setFarmId] = React.useState<number | null>(null);
+  const [fieldId, setFieldId] = React.useState<number | null>(null);
+
+  const farms = useQuery<Farm[]>({ queryKey: ["farms"], queryFn: api.getFarms });
+  const fields = useQuery<Field[]>({
+    queryKey: ["fields", farmId],
+    queryFn: () => api.getFields(farmId as number),
+    enabled: farmId !== null,
+  });
 
   const mutation = useMutation<SeasonBrief, Error>({
-    mutationFn: () =>
-      api.getSeasonBrief(municipality, season, price ? Number(price) : undefined),
+    mutationFn: () => {
+      const p = price ? Number(price) : undefined;
+      // Talhão escolhido → brief personalizado pelo perfil; senão, regional pelo município.
+      return fieldId !== null
+        ? api.getSeasonBriefForField(fieldId, season, p)
+        : api.getSeasonBrief(municipality, season, p);
+    },
   });
 
   const b = mutation.data;
+  const canSubmit = fieldId !== null || municipality !== "";
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Planejar a Safra"
-        description="Antes de plantar: produtividade esperada, janela oficial ZARC, preço, custo de referência e a margem projetada — em um só lugar, com dado público oficial."
+        description="Antes de plantar: produtividade esperada, janela oficial ZARC, preço, custo de referência e a margem projetada — em um só lugar, com dado público oficial. Escolha um talhão para personalizar pelo seu perfil agronômico."
       />
 
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="space-y-4 pt-6">
+          {farms.data && farms.data.length > 0 && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="farm">Fazenda (opcional — personaliza)</Label>
+                <Select
+                  id="farm"
+                  value={farmId ?? ""}
+                  onChange={(e) => {
+                    setFarmId(e.target.value ? Number(e.target.value) : null);
+                    setFieldId(null);
+                  }}
+                >
+                  <option value="">— usar município —</option>
+                  {farms.data.map((f) => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="field">Talhão</Label>
+                <Select
+                  id="field"
+                  value={fieldId ?? ""}
+                  onChange={(e) => setFieldId(e.target.value ? Number(e.target.value) : null)}
+                  disabled={farmId === null}
+                >
+                  <option value="">— selecione —</option>
+                  {(fields.data ?? []).map((f) => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (municipality) mutation.mutate();
+              if (canSubmit) mutation.mutate();
             }}
             className="grid grid-cols-1 gap-4 md:grid-cols-4 md:items-end"
           >
@@ -70,6 +120,7 @@ export default function PlanejarSafraPage() {
                 id="municipality"
                 value={municipality}
                 onChange={setMunicipality}
+                disabled={fieldId !== null}
               />
             </div>
             <div className="space-y-2">
@@ -89,7 +140,7 @@ export default function PlanejarSafraPage() {
                 onChange={(e) => setPrice(e.target.value)}
               />
             </div>
-            <Button type="submit" disabled={!municipality || mutation.isPending}>
+            <Button type="submit" disabled={!canSubmit || mutation.isPending}>
               {mutation.isPending && <Spinner />}
               Gerar plano
             </Button>
@@ -114,7 +165,17 @@ export default function PlanejarSafraPage() {
           {/* PRODUTIVIDADE */}
           <Card>
             <CardHeader>
-              <CardTitle>Quanto devo colher</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                Quanto devo colher
+                {b.yield.personalized ? (
+                  <Badge variant="success">
+                    personalizado pelo perfil ({b.yield.adjustment?.total_effect_pct! > 0 ? "+" : ""}
+                    {formatNumber(b.yield.adjustment?.total_effect_pct ?? 0)}%)
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">média regional</Badge>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

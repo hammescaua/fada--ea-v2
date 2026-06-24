@@ -24,6 +24,7 @@ from app.infra.models import (
     EventPresetORM,
     FarmORM,
     FarmPerformanceProfileORM,
+    FieldAgronomicProfileORM,
     FieldORM,
     PlannedEventORM,
     ProductORM,
@@ -112,6 +113,10 @@ class FarmRepository:
     def list_fields(self, farm_id: int) -> list[Field]:
         stmt = select(FieldORM).where(FieldORM.farm_id == farm_id).order_by(FieldORM.id)
         return [_field(o) for o in self.s.scalars(stmt)]
+
+    def get_field(self, field_id: int) -> Field | None:
+        o = self.s.get(FieldORM, field_id)
+        return _field(o) if o else None
 
     def add_cycle(self, c: CropCycle) -> CropCycle:
         if self.s.get(FieldORM, c.field_id) is None:
@@ -327,3 +332,35 @@ class AdaptiveRepository:
         self.s.commit()
         self.s.refresh(o)
         return _profile(o)
+
+
+class AgronomicProfileRepository:
+    """Persistência do Perfil Agronômico por talhão (ADR-0022). Um perfil por talhão."""
+
+    def __init__(self, session: Session) -> None:
+        self.s = session
+
+    def get(self, field_id: int) -> dict | None:
+        o = self.s.scalar(
+            select(FieldAgronomicProfileORM).where(
+                FieldAgronomicProfileORM.field_id == field_id
+            )
+        )
+        return dict(o.profile) if o else None
+
+    def upsert(self, field_id: int, profile: dict[str, str]) -> dict:
+        if self.s.get(FieldORM, field_id) is None:
+            raise LookupError(f"Field {field_id} inexistente")
+        o = self.s.scalar(
+            select(FieldAgronomicProfileORM).where(
+                FieldAgronomicProfileORM.field_id == field_id
+            )
+        )
+        if o is None:
+            o = FieldAgronomicProfileORM(field_id=field_id, profile=profile)
+            self.s.add(o)
+        else:
+            o.profile = profile
+        self.s.commit()
+        self.s.refresh(o)
+        return dict(o.profile)

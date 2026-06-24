@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
+from app.api.v1.routes.regional_intelligence import _model
 from app.api.v1.routes.regional_intelligence import get_service as _regional_service
-from app.domain.agronomy import UnknownFactor
+from app.domain.agronomy import UnknownFactor, validate_profile
+from app.infra.db import get_session
+from app.infra.repositories import AgronomicProfileRepository, FarmRepository
 from app.schemas.agronomic import (
     AgronomicEstimateRequest,
     AgronomicEstimateResponse,
+    AgronomicProfileResponse,
     FactorOut,
+    SaveProfileRequest,
 )
 from app.services.agronomic import AgronomicService
 from app.services.regional_intelligence import (
@@ -23,6 +29,13 @@ router = APIRouter()
 
 def get_agronomic_service() -> AgronomicService:
     return AgronomicService(regional=_regional_service())
+
+
+def _municipality_name(code: int) -> str:
+    info = _model().municipalities().get(str(code))
+    if info is None:
+        raise HTTPException(404, f"Município {code} fora da região coberta pelo modelo.")
+    return info["name"]
 
 
 @router.get("/agronomic/factors", response_model=list[FactorOut])
@@ -49,4 +62,55 @@ def agronomic_estimate_endpoint(
         raise HTTPException(422, f"Cultura não suportada: {exc}.") from exc
     except InvalidSeason as exc:
         raise HTTPException(422, f"Safra inválida: {exc}.") from exc
+    return AgronomicEstimateResponse(**data)
+
+
+# -- Perfil persistido por talhão (capturar uma vez, reusar) ----------------
+
+@router.get("/fields/{field_id}/agronomic-profile", response_model=AgronomicProfileResponse)
+def get_field_profile_endpoint(
+    field_id: int, session: Session = Depends(get_session)
+) -> AgronomicProfileResponse:
+    if FarmRepository(session).get_field(field_id) is None:
+        raise HTTPException(404, f"Talhão {field_id} inexistente.")
+    profile = AgronomicProfileRepository(session).get(field_id) or {}
+    return AgronomicProfileResponse(field_id=field_id, profile=profile)
+
+
+@router.put("/fields/{field_id}/agronomic-profile", response_model=AgronomicProfileResponse)
+def save_field_profile_endpoint(
+    field_id: int, body: SaveProfileRequest, session: Session = Depends(get_session)
+) -> AgronomicProfileResponse:
+    try:
+        validate_profile(body.profile)
+    except UnknownFactor as exc:
+        raise HTTPException(422, f"Perfil inválido: {exc}") from exc
+    try:
+        saved = AgronomicProfileRepository(session).upsert(field_id, body.profile)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return AgronomicProfileResponse(field_id=field_id, profile=saved)
+
+
+@router.get("/fields/{field_id}/estimate", response_model=AgronomicEstimateResponse)
+def field_estimate_endpoint(
+    field_id: int,
+    season: str = Query("2026/27"),
+    crop: str = Query("soja"),
+    session: Session = Depends(get_session),
+    svc: AgronomicService = Depends(get_agronomic_service),
+) -> AgronomicEstimateResponse:
+    farms = FarmRepository(session)
+    field = farms.get_field(field_id)
+    if field is None:
+        raise HTTPException(404, f"Talhão {field_id} inexistente.")
+    farm = farms.get_farm(field.farm_id)
+    municipality = _municipality_name(farm.municipality_code)
+    profile = AgronomicProfileRepository(session).get(field_id) or {}
+    try:
+        data = svc.personalized_estimate(municipality, crop, season, profile)
+    except (CropNotSupported, InvalidSeason) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    except MunicipalityNotInRegion as exc:
+        raise HTTPException(404, str(exc)) from exc
     return AgronomicEstimateResponse(**data)
