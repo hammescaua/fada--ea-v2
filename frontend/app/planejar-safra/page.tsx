@@ -362,6 +362,55 @@ export default function PlanejarSafraPage() {
             </Card>
           )}
 
+          {/* O QUE FAZER E QUANTO VALE (ganho líquido R$/ha) */}
+          {b.recommendations && b.recommendations.length > 0 && (
+            <Card className="border-green-200">
+              <CardHeader>
+                <CardTitle>O que fazer e quanto vale (R$/ha líquido)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Ações de manejo ordenadas pelo ganho <b>líquido</b> (produtividade ao preço
+                  atual, menos o custo de adotar). Estimativa — confirme com seu agrônomo.
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-2 font-medium">Líquido</th>
+                        <th className="px-3 py-2 font-medium">Ação</th>
+                        <th className="px-3 py-2 font-medium">+Produtividade</th>
+                        <th className="px-3 py-2 font-medium">Custo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {b.recommendations.map((r) => (
+                        <tr key={r.key} className="border-t border-border">
+                          <td className="px-3 py-2 font-semibold tabular-nums text-green-700">
+                            +{formatBRL(r.net_gain_rs_ha)}/ha
+                          </td>
+                          <td className="px-3 py-2">
+                            {r.question}
+                            <span className="block text-xs text-muted-foreground">
+                              {r.current_label} → {r.target_label} (+{formatNumber(r.gain_sc_ha)} sc/ha)
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 tabular-nums text-green-700">
+                            +{formatBRL(r.yield_gain_rs_ha)}
+                          </td>
+                          <td className="px-3 py-2 tabular-nums text-muted-foreground">
+                            {r.cost_change_rs_ha > 0 ? "+" : ""}
+                            {formatBRL(r.cost_change_rs_ha)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <p className="text-xs italic text-muted-foreground">
             Fontes: {b.data_sources.join(" · ")}. {b.disclaimer}
           </p>

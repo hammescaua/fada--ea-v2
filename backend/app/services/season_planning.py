@@ -15,6 +15,7 @@ from app.domain.agronomy import (
     apply_adjustment,
     compute_adjustment,
     compute_cost_adjustment,
+    economic_recommendations,
     scenario_multipliers,
 )
 from app.domain.planning.season import season_margin
@@ -122,6 +123,18 @@ class SeasonPlanningService:
             )
             margin_block["cost_adjustment"] = cost_adj_block
 
+        # 6) Recomendações na linguagem do produtor (ganho líquido R$/ha) — exige
+        # perfil + preço + custo de referência.
+        recommendations_block = None
+        if profile and price_block is not None and cost_block is not None:
+            recs = economic_recommendations(
+                profile=profile,
+                personalized_point_sc_ha=expected,
+                price_per_bag=price_block["price_per_bag"],
+                reference_cost_per_ha=cost_block["cot_per_ha"],
+            )
+            recommendations_block = [vars(r) for r in recs]
+
         return {
             "municipality": reg["municipality"],
             "municipality_code": code,
@@ -133,6 +146,7 @@ class SeasonPlanningService:
             "price": price_block,
             "cost": cost_block,
             "margin": margin_block,
+            "recommendations": recommendations_block,
             "verdict": _verdict(reg["municipality"], expected, margin_block),
             "data_sources": _sources(price_block, cost_block, planting_block),
             "disclaimer": (

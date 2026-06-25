@@ -355,6 +355,20 @@ export interface SeasonBrief {
       factors: { key: string; option: string; effect_pct: number; rationale: string }[];
     } | null;
   } | null;
+  recommendations:
+    | {
+        key: string;
+        question: string;
+        current_label: string;
+        target_label: string;
+        gain_sc_ha: number;
+        yield_gain_rs_ha: number;
+        cost_change_rs_ha: number;
+        net_gain_rs_ha: number;
+        rationale: string;
+        confidence: string;
+      }[]
+    | null;
   verdict: string;
   data_sources: string[];
   disclaimer: string;

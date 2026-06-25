@@ -21,7 +21,9 @@ from app.domain.agronomy.profile import (
 )
 from app.domain.agronomy.recommendations import (
     MANAGEABLE_FACTORS,
+    EconomicRecommendation,
     Recommendation,
+    economic_recommendations,
     recommendations,
 )
 from app.domain.agronomy.scenario import (
@@ -38,6 +40,7 @@ __all__ = [
     "AppliedCostFactor",
     "AppliedFactor",
     "CostAdjustmentResult",
+    "EconomicRecommendation",
     "Factor",
     "MANAGEABLE_FACTORS",
     "PersonalizedEstimate",
@@ -49,6 +52,7 @@ __all__ = [
     "classify_soil_analysis",
     "compute_adjustment",
     "compute_cost_adjustment",
+    "economic_recommendations",
     "planting_window_class",
     "recommendations",
     "scenario_multipliers",
