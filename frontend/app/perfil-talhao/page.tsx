@@ -9,6 +9,7 @@ import {
   type Farm,
   type Field,
   type FieldLearnedEstimate,
+  type ManejoHistory,
   type SoilAnalysisResult,
 } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
@@ -54,6 +55,25 @@ export default function PerfilTalhaoPage() {
     queryFn: () => api.getFieldLearnedEstimate(fieldId as number, season),
     enabled: fieldId !== null,
     retry: false,
+  });
+
+  // Histórico de manejo × resultado por safra.
+  const manejoHistory = useQuery<ManejoHistory>({
+    queryKey: ["manejo-history", fieldId],
+    queryFn: () => api.getManejoHistory(fieldId as number),
+    enabled: fieldId !== null,
+    retry: false,
+  });
+  const saveManejo = useMutation({
+    mutationFn: (cycleId: number) =>
+      api.saveCycleManejo(
+        cycleId,
+        Object.fromEntries(Object.entries(profile).filter(([, v]) => v !== ""))
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["manejo-history", fieldId] });
+      qc.invalidateQueries({ queryKey: ["field-learned", fieldId, season] });
+    },
   });
   React.useEffect(() => {
     if (savedProfile.data) setProfile(savedProfile.data.profile ?? {});
@@ -384,6 +404,72 @@ export default function PerfilTalhaoPage() {
               </div>
             )}
             <p className="text-xs italic text-muted-foreground">{learned.data.explanation}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* HISTÓRICO DE MANEJO × RESULTADO */}
+      {fieldMode && manejoHistory.data && manejoHistory.data.n_seasons > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Histórico de manejo × resultado</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 font-medium">Safra</th>
+                    <th className="px-3 py-2 font-medium">Manejo</th>
+                    <th className="px-3 py-2 font-medium">Previsto</th>
+                    <th className="px-3 py-2 font-medium">Real</th>
+                    <th className="px-3 py-2 font-medium">vs previsto</th>
+                    <th className="px-3 py-2 font-medium">Registrar manejo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {manejoHistory.data.history.map((h) => (
+                    <tr key={h.crop_cycle_id} className="border-t border-border">
+                      <td className="px-3 py-2 font-medium">{h.season}</td>
+                      <td className="px-3 py-2 text-xs text-muted-foreground">
+                        {h.manejo_effect_pct > 0 ? "+" : ""}
+                        {formatNumber(h.manejo_effect_pct)}% · {h.manejo_source}
+                      </td>
+                      <td className="px-3 py-2 tabular-nums">
+                        {h.predicted_sc_ha != null ? `${formatNumber(h.predicted_sc_ha)}` : "—"}
+                      </td>
+                      <td className="px-3 py-2 tabular-nums font-medium">
+                        {h.actual_sc_ha != null ? `${formatNumber(h.actual_sc_ha)}` : "—"}
+                      </td>
+                      <td
+                        className={
+                          "px-3 py-2 tabular-nums " +
+                          (h.delta_vs_predicted_pct == null
+                            ? ""
+                            : h.delta_vs_predicted_pct >= 0
+                              ? "text-green-700"
+                              : "text-red-700")
+                        }
+                      >
+                        {h.delta_vs_predicted_pct != null
+                          ? `${h.delta_vs_predicted_pct > 0 ? "+" : ""}${formatNumber(h.delta_vs_predicted_pct)}%`
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2">
+                        <button
+                          className="text-xs text-brand-700 underline disabled:opacity-50"
+                          onClick={() => saveManejo.mutate(h.crop_cycle_id)}
+                          disabled={saveManejo.isPending}
+                        >
+                          salvar perfil atual aqui
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-muted-foreground">{manejoHistory.data.note}</p>
           </CardContent>
         </Card>
       )}

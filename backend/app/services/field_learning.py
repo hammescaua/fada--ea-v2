@@ -49,6 +49,51 @@ class FieldLearningService:
             })
         return history
 
+    def manejo_history(self, field_id: int) -> dict:
+        """Histórico manejo×resultado por safra: o que foi feito × o que rendeu.
+
+        Para cada safra do talhão: o manejo registrado (ou o perfil atual como proxy),
+        a expectativa daquele manejo sob o clima real do ano e a produtividade real.
+        É a base do aprendizado por variável e a visão que o produtor pede.
+        """
+        field = self.farms.get_field(field_id)
+        if field is None:
+            raise FieldNotFound(field_id)
+        farm = self.farms.get_farm(field.farm_id)
+        current = self.profiles.get(field_id) or {}
+        rows: list[dict] = []
+        for c in self.farms.list_cycles_by_field(field_id):
+            snapshot = self.profiles.get_cycle(c.id)
+            manejo = snapshot if snapshot else current
+            source = "safra" if snapshot else ("perfil atual (proxy)" if current else "—")
+            adj = compute_adjustment(manejo) if manejo else None
+            fitted = regional_fitted_sc_ha(self.model, farm.municipality_code, c.season.harvest_year)
+            predicted = round(fitted * adj.multiplier, 1) if (adj and fitted > 0) else None
+            actual = round(c.actual_yield_sc_ha, 1) if c.actual_yield_sc_ha else None
+            delta_pct = (
+                round(100 * (actual - predicted) / predicted, 1)
+                if (actual is not None and predicted) else None
+            )
+            rows.append({
+                "crop_cycle_id": c.id,
+                "season": c.season.label,
+                "harvest_year": c.season.harvest_year,
+                "manejo_source": source,
+                "manejo_effect_pct": adj.total_effect_pct if adj else 0.0,
+                "n_factors": adj.n_factors if adj else 0,
+                "predicted_sc_ha": predicted,
+                "actual_sc_ha": actual,
+                "delta_vs_predicted_pct": delta_pct,
+            })
+        return {
+            "field_id": field_id,
+            "field_name": field.name,
+            "n_seasons": len(rows),
+            "history": rows,
+            "note": "Manejo por safra (snapshot) × resultado. Onde não há snapshot, usa "
+                    "o perfil atual do talhão como aproximação.",
+        }
+
     def learned_estimate(self, field_id: int, season: str) -> dict:
         field = self.farms.get_field(field_id)
         if field is None:

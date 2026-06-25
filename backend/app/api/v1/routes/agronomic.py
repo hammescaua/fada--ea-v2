@@ -145,14 +145,55 @@ def field_learned_estimate_endpoint(
     session: Session = Depends(get_session),
 ) -> dict:
     """Estimativa que aprende: perfil (a priori) + colheitas do talhão (a posteriori)."""
-    farms = FarmRepository(session)
-    svc = FieldLearningService(
-        farms=farms, profiles=AgronomicProfileRepository(session), model=_model(),
-    )
+    svc = _field_learning(session)
     try:
         return svc.learned_estimate(field_id, season)
     except FieldNotFound as exc:
         raise HTTPException(404, f"Talhão {exc} inexistente.") from exc
+
+
+@router.get("/fields/{field_id}/manejo-history")
+def field_manejo_history_endpoint(
+    field_id: int, session: Session = Depends(get_session)
+) -> dict:
+    """Histórico de manejo × resultado por safra do talhão."""
+    try:
+        return _field_learning(session).manejo_history(field_id)
+    except FieldNotFound as exc:
+        raise HTTPException(404, f"Talhão {exc} inexistente.") from exc
+
+
+@router.get("/crop-cycles/{cycle_id}/manejo", response_model=AgronomicProfileResponse)
+def get_cycle_manejo_endpoint(
+    cycle_id: int, session: Session = Depends(get_session)
+) -> AgronomicProfileResponse:
+    if FarmRepository(session).get_cycle(cycle_id) is None:
+        raise HTTPException(404, f"Safra {cycle_id} inexistente.")
+    profile = AgronomicProfileRepository(session).get_cycle(cycle_id) or {}
+    return AgronomicProfileResponse(field_id=cycle_id, profile=profile)
+
+
+@router.put("/crop-cycles/{cycle_id}/manejo", response_model=AgronomicProfileResponse)
+def save_cycle_manejo_endpoint(
+    cycle_id: int, body: SaveProfileRequest, session: Session = Depends(get_session)
+) -> AgronomicProfileResponse:
+    try:
+        validate_profile(body.profile)
+    except UnknownFactor as exc:
+        raise HTTPException(422, f"Manejo inválido: {exc}") from exc
+    try:
+        saved = AgronomicProfileRepository(session).upsert_cycle(cycle_id, body.profile)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return AgronomicProfileResponse(field_id=cycle_id, profile=saved)
+
+
+def _field_learning(session: Session) -> FieldLearningService:
+    return FieldLearningService(
+        farms=FarmRepository(session),
+        profiles=AgronomicProfileRepository(session),
+        model=_model(),
+    )
 
 
 # -- Perfil persistido por talhão (capturar uma vez, reusar) ----------------

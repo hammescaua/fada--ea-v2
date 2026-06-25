@@ -183,3 +183,21 @@ class FieldAgronomicProfileORM(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
+
+
+class CropCycleManejoORM(Base):
+    """Snapshot do manejo (perfil agronômico) de uma SAFRA (um por ciclo).
+
+    Cria o histórico manejo×resultado por safra (ADR-0026): qual manejo foi usado
+    naquele ciclo, para comparar com a colheita real e, no futuro, aprender o efeito
+    de cada variável. Separado do perfil "atual" do talhão (que mira a próxima safra).
+    """
+
+    __tablename__ = "crop_cycle_manejo"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    crop_cycle_id: Mapped[int] = mapped_column(ForeignKey("crop_cycles.id"), unique=True)
+    profile: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )

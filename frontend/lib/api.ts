@@ -267,6 +267,24 @@ export interface AgronomicEstimateRequest {
   profile: Record<string, string>;
 }
 
+export interface ManejoHistory {
+  field_id: number;
+  field_name: string;
+  n_seasons: number;
+  history: {
+    crop_cycle_id: number;
+    season: string;
+    harvest_year: number;
+    manejo_source: string;
+    manejo_effect_pct: number;
+    n_factors: number;
+    predicted_sc_ha: number | null;
+    actual_sc_ha: number | null;
+    delta_vs_predicted_pct: number | null;
+  }[];
+  note: string;
+}
+
 export interface FieldLearnedEstimate {
   field_id: number;
   field_name: string;
@@ -1185,6 +1203,15 @@ export const api = {
   getFieldLearnedEstimate: (fieldId: number, season = "2026/27") =>
     get<FieldLearnedEstimate>(
       `/fields/${fieldId}/learned-estimate?season=${encodeURIComponent(season)}`
+    ),
+
+  getManejoHistory: (fieldId: number) =>
+    get<ManejoHistory>(`/fields/${fieldId}/manejo-history`),
+
+  saveCycleManejo: (cycleId: number, profile: Record<string, string>) =>
+    put<{ profile: Record<string, string> }, { profile: Record<string, string> }>(
+      `/crop-cycles/${cycleId}/manejo`,
+      { profile }
     ),
 
   getAgronomicFactors: () => get<AgronomicFactor[]>("/agronomic/factors"),
