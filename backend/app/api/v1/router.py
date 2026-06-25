@@ -10,6 +10,7 @@ from app.api.v1.routes import (
     capture,
     cost,
     dashboard,
+    decision_cards,
     decisions,
     demo,
     export,
@@ -46,6 +47,7 @@ api_router.include_router(weather.router, tags=["weather"])
 api_router.include_router(zarc.router, tags=["zarc"])
 api_router.include_router(season_planning.router, tags=["season-planning"])
 api_router.include_router(decisions.router, tags=["decisions"])
+api_router.include_router(decision_cards.router, tags=["decision-cards"])
 api_router.include_router(dashboard.router, tags=["dashboard"])
 api_router.include_router(demo.router, tags=["demo"])
 api_router.include_router(export.router, tags=["export"])

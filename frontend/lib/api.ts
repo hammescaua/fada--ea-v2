@@ -1067,6 +1067,37 @@ export interface Decisions {
   note: string;
 }
 
+// Decision Cards — contrato único de recomendação (clima/manejo/histórico)
+// ---------------------------------------------------------------------------
+
+export interface DecisionEffect {
+  basis: string;
+  yield_sc_ha: [number, number, number] | null;
+  profit_brl_ha: [number, number, number] | null;
+}
+
+export interface DecisionCard {
+  id: string;
+  source: string; // "clima" | "manejo" | "historico"
+  decision: string;
+  recommendation: string;
+  confidence: string; // "alta" | "moderada" | "baixa"
+  horizon: string;
+  disclaimer: string;
+  n_data: number;
+  severity: string;
+  effect: DecisionEffect | null;
+  why: { label: string; detail: string }[];
+}
+
+export interface DecisionCards {
+  farm_id: number;
+  field_id: number | null;
+  n_cards: number;
+  cards: DecisionCard[];
+  note: string;
+}
+
 // Platform: system status, dashboard, demo
 // ---------------------------------------------------------------------------
 
@@ -1193,6 +1224,12 @@ export const api = {
   operationsCsvUrl: (farmId: number) => `${API_V1}/farms/${farmId}/operations.csv`,
 
   getDecisions: (farmId: number) => get<Decisions>(`/farms/${farmId}/decisions`),
+
+  getDecisionCards: (farmId: number, fieldId?: number, season = "2026/27") => {
+    const q = new URLSearchParams({ season });
+    if (fieldId != null) q.set("field_id", String(fieldId));
+    return get<DecisionCards>(`/farms/${farmId}/decision-cards?${q.toString()}`);
+  },
 
   getPlanVsActual: (cycleId: number) =>
     get<PlanVsActual>(`/crop-cycles/${cycleId}/plan-vs-actual`),
