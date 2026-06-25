@@ -8,6 +8,7 @@ import {
   type AgronomicFactor,
   type Farm,
   type Field,
+  type FieldLearnedEstimate,
   type SoilAnalysisResult,
 } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
@@ -45,6 +46,14 @@ export default function PerfilTalhaoPage() {
     queryKey: ["field-profile", fieldId],
     queryFn: () => api.getFieldProfile(fieldId as number),
     enabled: fieldId !== null,
+  });
+
+  // Aprendizado: perfil (a priori) + colheitas do talhão (a posteriori).
+  const learned = useQuery<FieldLearnedEstimate>({
+    queryKey: ["field-learned", fieldId, season],
+    queryFn: () => api.getFieldLearnedEstimate(fieldId as number, season),
+    enabled: fieldId !== null,
+    retry: false,
   });
   React.useEffect(() => {
     if (savedProfile.data) setProfile(savedProfile.data.profile ?? {});
@@ -325,6 +334,59 @@ export default function PerfilTalhaoPage() {
       </Card>
 
       {estimate.isError && <ErrorBlock error={estimate.error} />}
+
+      {/* APRENDIZADO: perfil (a priori) + colheitas do talhão (a posteriori) */}
+      {fieldMode && learned.data && (
+        <Card className="border-brand-200">
+          <CardHeader>
+            <CardTitle>O que o FADA aprendeu da sua lavoura</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="rounded-lg border border-border bg-muted/30 p-4">
+                <div className="text-xs uppercase text-muted-foreground">Ponto de partida (perfil)</div>
+                <div className="mt-1 text-lg font-semibold tabular-nums">
+                  {learned.data.a_priori_profile_pct > 0 ? "+" : ""}
+                  {formatNumber(learned.data.a_priori_profile_pct)}%
+                </div>
+                <div className="text-xs text-muted-foreground">vs. média regional</div>
+              </div>
+              <div className="rounded-lg border border-border bg-muted/30 p-4">
+                <div className="text-xs uppercase text-muted-foreground">
+                  Suas colheitas ({learned.data.n_harvests})
+                </div>
+                <div className="mt-1 text-lg font-semibold tabular-nums">
+                  {learned.data.n_harvests > 0
+                    ? `${learned.data.observed_from_harvests_pct > 0 ? "+" : ""}${formatNumber(learned.data.observed_from_harvests_pct)}%`
+                    : "—"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  confiança {Math.round(learned.data.confidence_score * 100)}% · {learned.data.adaptation_level}
+                </div>
+              </div>
+              <div className="rounded-lg border-2 border-brand-300 bg-brand-50/50 p-4">
+                <div className="text-xs uppercase text-brand-700">Previsão aprendida</div>
+                <div className="mt-1 text-2xl font-semibold tabular-nums text-brand-800">
+                  {formatNumber(learned.data.learned.point_sc_ha)} sc/ha
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {formatNumber(learned.data.learned.interval_sc_ha[0])}–
+                  {formatNumber(learned.data.learned.interval_sc_ha[1])}
+                </div>
+              </div>
+            </div>
+            {learned.data.residual_history.length > 0 && (
+              <div className="text-xs text-muted-foreground">
+                Histórico:{" "}
+                {learned.data.residual_history
+                  .map((h) => `${h.harvest_year}: ${formatNumber(h.actual_sc_ha)} sc/ha`)
+                  .join(" · ")}
+              </div>
+            )}
+            <p className="text-xs italic text-muted-foreground">{learned.data.explanation}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* RESULTADO */}
       {e && (

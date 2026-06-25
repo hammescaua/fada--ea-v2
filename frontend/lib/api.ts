@@ -267,6 +267,31 @@ export interface AgronomicEstimateRequest {
   profile: Record<string, string>;
 }
 
+export interface FieldLearnedEstimate {
+  field_id: number;
+  field_name: string;
+  season: string;
+  regional: { point_sc_ha: number; interval_sc_ha: [number, number] };
+  a_priori_profile_pct: number;
+  observed_from_harvests_pct: number;
+  applied_pct: number;
+  n_harvests: number;
+  confidence_score: number;
+  adaptation_level: string;
+  learned: {
+    point_sc_ha: number;
+    interval_sc_ha: [number, number];
+    scenarios: Scenario[];
+  };
+  residual_history: {
+    harvest_year: number;
+    actual_sc_ha: number;
+    regional_fitted_sc_ha: number;
+    residual_pct: number;
+  }[];
+  explanation: string;
+}
+
 export interface SoilAnalysisRequest {
   p_mehlich?: number;
   k_mehlich?: number;
@@ -1156,6 +1181,11 @@ export const api = {
 
   getFarmWeather: (farmId: number) =>
     get<WeatherForecast>(`/farms/${farmId}/weather`),
+
+  getFieldLearnedEstimate: (fieldId: number, season = "2026/27") =>
+    get<FieldLearnedEstimate>(
+      `/fields/${fieldId}/learned-estimate?season=${encodeURIComponent(season)}`
+    ),
 
   getAgronomicFactors: () => get<AgronomicFactor[]>("/agronomic/factors"),
 

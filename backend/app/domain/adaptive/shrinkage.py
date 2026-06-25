@@ -45,6 +45,7 @@ class PersonalizedPrediction:
     adaptation_level: str
     n_cycles: int
     scenarios_sc_ha: dict[str, float]
+    prior_bias_pct: float = 0.0         # ponto de partida (perfil agronômico), em %
 
 
 def compute_profile_stats(
@@ -108,15 +109,23 @@ def personalize(
     observed_bias: float,
     variance_relative: float,
     prior: ShrinkagePrior | None = None,
+    prior_bias: float = 0.0,
 ) -> PersonalizedPrediction:
     """Aplica a correção encolhida ao regional, preservando a incerteza.
 
+    Encolhe a média amostral dos resíduos em direção ao ``prior_bias`` (e não a 0):
+    com ``prior_bias`` vindo do Perfil Agronômico (ADR-0022), a previsão **parte do
+    conhecimento agronômico** (n=0 ⇒ usa o perfil) e **converge para o dado real do
+    talhão** conforme as colheitas se acumulam (ADR-0025). ``prior_bias=0`` recupera
+    o comportamento original (encolher ao regional).
+
     Args:
         observed_bias: média relativa dos resíduos (fração). 0 se sem dados.
+        prior_bias: viés esperado a priori (fração), ex.: perfil agronômico.
     """
     prior = prior or ShrinkagePrior()
     w, se_bias = shrinkage_weight(n_cycles, variance_relative, prior)
-    shrunk_bias = w * observed_bias
+    shrunk_bias = w * observed_bias + (1.0 - w) * prior_bias
 
     point = round(regional_point_sc_ha * (1.0 + shrunk_bias), 1)
 
@@ -140,4 +149,5 @@ def personalize(
         adaptation_level=adaptation_level(w),
         n_cycles=n_cycles,
         scenarios_sc_ha=scenarios,
+        prior_bias_pct=round(100 * prior_bias, 1),
     )

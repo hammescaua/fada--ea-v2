@@ -30,6 +30,7 @@ from app.schemas.agronomic import (
     SoilClassificationNote,
 )
 from app.services.agronomic import AgronomicService
+from app.services.field_learning import FieldLearningService, FieldNotFound
 from app.services.regional_intelligence import (
     CropNotSupported,
     InvalidSeason,
@@ -135,6 +136,23 @@ def agronomic_estimate_endpoint(
     except InvalidSeason as exc:
         raise HTTPException(422, f"Safra inválida: {exc}.") from exc
     return AgronomicEstimateResponse(**data)
+
+
+@router.get("/fields/{field_id}/learned-estimate")
+def field_learned_estimate_endpoint(
+    field_id: int,
+    season: str = Query("2026/27"),
+    session: Session = Depends(get_session),
+) -> dict:
+    """Estimativa que aprende: perfil (a priori) + colheitas do talhão (a posteriori)."""
+    farms = FarmRepository(session)
+    svc = FieldLearningService(
+        farms=farms, profiles=AgronomicProfileRepository(session), model=_model(),
+    )
+    try:
+        return svc.learned_estimate(field_id, season)
+    except FieldNotFound as exc:
+        raise HTTPException(404, f"Talhão {exc} inexistente.") from exc
 
 
 # -- Perfil persistido por talhão (capturar uma vez, reusar) ----------------

@@ -148,6 +148,14 @@ class FarmRepository:
         o = self.s.get(CropCycleORM, cycle_id)
         return _field(self.s.get(FieldORM, o.field_id)) if o else None
 
+    def list_cycles_by_field(self, field_id: int) -> list[CropCycle]:
+        stmt = (
+            select(CropCycleORM)
+            .where(CropCycleORM.field_id == field_id)
+            .order_by(CropCycleORM.harvest_year)
+        )
+        return [_cycle(o) for o in self.s.scalars(stmt)]
+
     def list_cycles_by_farm(self, farm_id: int) -> list[CropCycle]:
         stmt = (
             select(CropCycleORM)
