@@ -13,6 +13,8 @@ from app.domain.agronomy import (
     FACTORS,
     apply_adjustment,
     compute_adjustment,
+    for_factor,
+    guide,
     recommendations,
     scenario_multipliers,
     water_sensitivity_note,
@@ -33,19 +35,36 @@ class AgronomicService:
     regional: RegionalIntelligenceService
 
     def factors_catalog(self) -> list[dict]:
-        """Catálogo do questionário padronizado (para a UI montar o formulário)."""
-        return [
-            {
+        """Catálogo do questionário padronizado (para a UI montar o formulário).
+
+        Cada fator vem enriquecido com a explicação **com fonte** do guia agronômico
+        (ADR-0027), quando disponível.
+        """
+        out = []
+        for f in FACTORS.values():
+            entry = for_factor(f.key)
+            out.append({
                 "key": f.key,
                 "question": f.question,
                 "rationale": f.rationale,
                 "confidence": f.confidence,
+                "explanation": entry.explanation if entry else None,
+                "sources": list(entry.sources) if entry else [],
                 "options": [
                     {"value": v, "label": o.label, "effect_pct": round(o.effect * 100, 1)}
                     for v, o in f.options.items()
                 ],
+            })
+        return out
+
+    def knowledge_guide(self) -> list[dict]:
+        """Guia agronômico citável (fatores + temas) — o 'por quê' com fonte."""
+        return [
+            {
+                "key": e.key, "title": e.title, "explanation": e.explanation,
+                "practical": e.practical, "sources": list(e.sources),
             }
-            for f in FACTORS.values()
+            for e in guide()
         ]
 
     def personalized_estimate(

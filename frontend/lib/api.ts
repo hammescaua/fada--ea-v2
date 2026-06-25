@@ -213,7 +213,17 @@ export interface AgronomicFactor {
   question: string;
   rationale: string;
   confidence: string;
+  explanation?: string | null;
+  sources?: string[];
   options: AgronomicFactorOption[];
+}
+
+export interface KnowledgeEntry {
+  key: string;
+  title: string;
+  explanation: string;
+  practical: string;
+  sources: string[];
 }
 
 export interface AppliedFactor {
@@ -1215,6 +1225,8 @@ export const api = {
     ),
 
   getAgronomicFactors: () => get<AgronomicFactor[]>("/agronomic/factors"),
+
+  getAgronomicKnowledge: () => get<KnowledgeEntry[]>("/agronomic/knowledge"),
 
   classifySoilAnalysis: (body: SoilAnalysisRequest) =>
     post<SoilAnalysisRequest, SoilAnalysisResult>("/agronomic/soil-analysis", body),

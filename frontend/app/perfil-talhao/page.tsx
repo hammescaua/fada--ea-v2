@@ -326,6 +326,19 @@ export default function PerfilTalhaoPage() {
                     ))}
                   </Select>
                   <p className="text-xs text-muted-foreground">{f.rationale}</p>
+                  {f.explanation && (
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-brand-700">
+                        Por quê (fonte)
+                      </summary>
+                      <p className="mt-1 text-muted-foreground">{f.explanation}</p>
+                      {f.sources && f.sources.length > 0 && (
+                        <p className="mt-1 text-[11px] italic text-muted-foreground">
+                          Fonte: {f.sources.join("; ")}
+                        </p>
+                      )}
+                    </details>
+                  )}
                 </div>
               ))}
             </div>

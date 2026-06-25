@@ -24,6 +24,7 @@ from app.schemas.agronomic import (
     AgronomicEstimateResponse,
     AgronomicProfileResponse,
     FactorOut,
+    KnowledgeEntryOut,
     SaveProfileRequest,
     SoilAnalysisRequest,
     SoilAnalysisResponse,
@@ -57,6 +58,14 @@ def agronomic_factors_endpoint(
     svc: AgronomicService = Depends(get_agronomic_service),
 ) -> list[FactorOut]:
     return [FactorOut(**f) for f in svc.factors_catalog()]
+
+
+@router.get("/agronomic/knowledge", response_model=list[KnowledgeEntryOut])
+def agronomic_knowledge_endpoint(
+    svc: AgronomicService = Depends(get_agronomic_service),
+) -> list[KnowledgeEntryOut]:
+    """Guia agronômico citável — explica cada variável com fonte (sem gerar número)."""
+    return [KnowledgeEntryOut(**e) for e in svc.knowledge_guide()]
 
 
 @router.get("/agronomic/planting-window-class")

@@ -9,6 +9,7 @@ from app.domain.agronomy.cost_profile import (
     compute_cost_adjustment,
 )
 from app.domain.agronomy.estimate import PersonalizedEstimate, apply_adjustment
+from app.domain.agronomy.knowledge import KnowledgeEntry, for_factor, guide
 from app.domain.agronomy.profile import (
     FACTORS,
     AdjustmentResult,
@@ -42,6 +43,7 @@ __all__ = [
     "CostAdjustmentResult",
     "EconomicRecommendation",
     "Factor",
+    "KnowledgeEntry",
     "MANAGEABLE_FACTORS",
     "PersonalizedEstimate",
     "Recommendation",
@@ -53,6 +55,8 @@ __all__ = [
     "compute_adjustment",
     "compute_cost_adjustment",
     "economic_recommendations",
+    "for_factor",
+    "guide",
     "planting_window_class",
     "recommendations",
     "scenario_multipliers",
