@@ -27,13 +27,17 @@ class ScenarioResultOut(BaseModel):
 
 
 class FinancialsRequest(BaseModel):
-    price_per_bag: float = Field(..., gt=0, examples=[125.0],
-                                 description="Preço spot da saca (R$/sc), informado pelo produtor")
+    price_per_bag: float | None = Field(
+        None, gt=0, examples=[125.0],
+        description="Preço da saca (R$/sc). Opcional: se omitido, usa o preço "
+                    "esperado da safra ou a cotação CEPEA/ESALQ ao vivo.",
+    )
 
 
 class FinancialsResponse(BaseModel):
     breakdown: CostBreakdownOut
     price_per_bag: float
+    price_source: str
     break_even_yield_sc_ha: float
     yield_source: str
     scenarios: list[ScenarioResultOut]

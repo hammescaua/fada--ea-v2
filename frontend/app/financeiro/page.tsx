@@ -4,8 +4,10 @@ import * as React from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   api,
+  type CostBenchmarkComparison,
   type CostBreakdown,
   type Financials,
+  type MarketPrice,
 } from "@/lib/api";
 import {
   CostByCategoryChart,
@@ -45,7 +47,24 @@ function Stat({
 export default function FinanceiroPage() {
   const ctx = useFarmContext();
   const cycleId = ctx.cropCycleId; // safra vem do contexto global (sem digitar ID)
-  const [priceInput, setPriceInput] = React.useState("125");
+  const [priceInput, setPriceInput] = React.useState("");
+  const [priceTouched, setPriceTouched] = React.useState(false);
+
+  // Preço observado de fonte oficial (CEPEA/ESALQ). Não é previsão: é o último
+  // valor publicado, datado — usado para pré-preencher o cenário sem o produtor digitar.
+  const marketQuery = useQuery<MarketPrice>({
+    queryKey: ["market-price", "soja"],
+    queryFn: () => api.getMarketPrice("soja"),
+    staleTime: 1000 * 60 * 30,
+    retry: false,
+  });
+
+  // Pré-preenche o campo com a cotação ao vivo (até o produtor digitar algo).
+  React.useEffect(() => {
+    if (!priceTouched && marketQuery.data) {
+      setPriceInput(String(marketQuery.data.summary.latest_value));
+    }
+  }, [marketQuery.data, priceTouched]);
 
   const costQuery = useQuery<CostBreakdown>({
     queryKey: ["crop-cycle-cost", cycleId],
@@ -53,10 +72,19 @@ export default function FinanceiroPage() {
     enabled: cycleId !== null,
   });
 
+  // Benchmark de custo de referência (CONAB) comparado ao custo real da safra.
+  const benchmarkQuery = useQuery<CostBenchmarkComparison>({
+    queryKey: ["cost-benchmark", cycleId],
+    queryFn: () => api.getCostBenchmark(cycleId as number),
+    enabled: cycleId !== null,
+    retry: false,
+  });
+
   const financials = useMutation<Financials>({
     mutationFn: () =>
       api.getCropCycleFinancials(cycleId as number, {
-        price_per_bag: Number(priceInput),
+        // Vazio → backend usa a cotação CEPEA ao vivo (ou o preço esperado da safra).
+        price_per_bag: priceInput ? Number(priceInput) : undefined,
       }),
   });
 
@@ -133,6 +161,146 @@ export default function FinanceiroPage() {
             </CardContent>
           </Card>
 
+          {/* BENCHMARK DE CUSTO (CONAB) — referência regional vs custo real da safra */}
+          {benchmarkQuery.data && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Custo vs referência {benchmarkQuery.data.source} (soja/
+                  {benchmarkQuery.data.uf}, {benchmarkQuery.data.safra})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Stat
+                  label="Seu custo por hectare"
+                  value={`${formatBRL(benchmarkQuery.data.actual_cost_per_ha)}/ha`}
+                  hint="Custo registrado nesta safra (eventos com custo)."
+                />
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-2 font-medium">Referência</th>
+                        <th className="px-3 py-2 font-medium">R$/ha</th>
+                        <th className="px-3 py-2 font-medium">Seu × ref.</th>
+                        <th className="px-3 py-2 font-medium">Situação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(["coe", "cot", "ct"] as const).map((key) => {
+                        const ref = benchmarkQuery.data!.references[key];
+                        if (!ref) return null;
+                        const isPrimary = benchmarkQuery.data!.primary === key;
+                        // Custo "abaixo" da referência é bom; "acima" é alerta.
+                        const color =
+                          ref.descriptor === "abaixo"
+                            ? "text-green-700"
+                            : ref.descriptor === "acima"
+                              ? "text-red-700"
+                              : "text-muted-foreground";
+                        return (
+                          <tr
+                            key={key}
+                            className={
+                              "border-t border-border " +
+                              (isPrimary ? "bg-brand-50/40" : "")
+                            }
+                          >
+                            <td className="px-3 py-2">
+                              {ref.reference_label}
+                              {isPrimary && (
+                                <span className="ml-2 rounded bg-brand-100 px-1.5 py-0.5 text-[10px] uppercase text-brand-700">
+                                  principal
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 tabular-nums">
+                              {formatBRL(ref.reference_per_ha)}
+                            </td>
+                            <td className="px-3 py-2 tabular-nums">
+                              {formatNumber(ref.ratio_pct)}%
+                            </td>
+                            <td className={"px-3 py-2 font-medium " + color}>
+                              {ref.descriptor}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <details>
+                  <summary className="cursor-pointer text-xs text-brand-700">
+                    Principais componentes da referência
+                  </summary>
+                  <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                    {benchmarkQuery.data.components.map((c) => (
+                      <li key={c.item} className="flex justify-between gap-4">
+                        <span>{c.item}</span>
+                        <span className="tabular-nums">
+                          {formatBRL(c.value_per_ha)}/ha ({formatNumber(c.share_pct)}%)
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+                <p className="text-xs text-muted-foreground">
+                  {benchmarkQuery.data.disclaimer}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* PREÇO DE MERCADO (CEPEA) — dado público oficial, datado, sem forecast */}
+          {marketQuery.data && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Preço de mercado — {marketQuery.data.source}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <Stat
+                    label="Cotação atual"
+                    value={`${formatBRL(marketQuery.data.summary.latest_value)}/sc`}
+                    hint={`${marketQuery.data.place} · ${marketQuery.data.summary.latest_day}`}
+                  />
+                  <Stat
+                    label={`Variação (${marketQuery.data.summary.window_days} d)`}
+                    value={
+                      <span
+                        className={
+                          marketQuery.data.summary.change_pct >= 0
+                            ? "text-green-700"
+                            : "text-red-700"
+                        }
+                      >
+                        {marketQuery.data.summary.change_pct >= 0 ? "+" : ""}
+                        {formatNumber(marketQuery.data.summary.change_pct)}%
+                      </span>
+                    }
+                    hint={`Faixa: ${formatBRL(
+                      marketQuery.data.summary.min_value
+                    )}–${formatBRL(marketQuery.data.summary.max_value)}`}
+                  />
+                  <Stat
+                    label="Média do período"
+                    value={`${formatBRL(marketQuery.data.summary.mean_value)}/sc`}
+                    hint={`${marketQuery.data.summary.n_points} cotações`}
+                  />
+                </div>
+                {marketQuery.data.summary.is_stale && (
+                  <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    Cotação com {marketQuery.data.summary.staleness_days} dias de
+                    defasagem — atualize a fonte antes de decidir.
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {marketQuery.data.disclaimer}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* FINANCIALS / SCENARIOS */}
           <Card>
             <CardHeader>
@@ -142,26 +310,35 @@ export default function FinanceiroPage() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!priceInput) return;
                   financials.mutate();
                 }}
                 className="flex flex-col gap-3 sm:flex-row sm:items-end"
               >
                 <div className="flex-1 space-y-2">
-                  <Label htmlFor="price2">Preço da saca (R$/sc)</Label>
+                  <Label htmlFor="price2">
+                    Preço da saca (R$/sc){" "}
+                    <span className="font-normal text-muted-foreground">
+                      — em branco usa a cotação CEPEA
+                    </span>
+                  </Label>
                   <Input
                     id="price2"
                     type="number"
                     min="0"
                     step="0.01"
                     value={priceInput}
-                    onChange={(e) => setPriceInput(e.target.value)}
+                    placeholder={
+                      marketQuery.data
+                        ? String(marketQuery.data.summary.latest_value)
+                        : "ex.: 130,00"
+                    }
+                    onChange={(e) => {
+                      setPriceTouched(true);
+                      setPriceInput(e.target.value);
+                    }}
                   />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={!priceInput || financials.isPending}
-                >
+                <Button type="submit" disabled={financials.isPending}>
                   {financials.isPending && <Spinner />}
                   Calcular cenários
                 </Button>
@@ -182,6 +359,7 @@ export default function FinanceiroPage() {
                     <Stat
                       label="Preço considerado"
                       value={`${formatBRL(fin.price_per_bag)}/sc`}
+                      hint={fin.price_source}
                     />
                   </div>
 

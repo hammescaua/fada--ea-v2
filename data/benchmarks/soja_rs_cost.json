@@ -1,0 +1,53 @@
+{
+  "crop": "soja",
+  "uf": "RS",
+  "safra": "2025/26",
+  "technology": "alta",
+  "source": "CONAB",
+  "fetched_at": "2026-06-24",
+  "coe_per_ha": 4668.36,
+  "cot_per_ha": 5830.27,
+  "ct_per_ha": 6655.94,
+  "components": [
+    {
+      "item": "Tratores e Colheitadeiras",
+      "value_per_ha": 1015.22,
+      "share_pct": 21.75
+    },
+    {
+      "item": "Agrotóxicos",
+      "value_per_ha": 867.95,
+      "share_pct": 18.59
+    },
+    {
+      "item": "Sementes e mudas",
+      "value_per_ha": 825.0,
+      "share_pct": 17.67
+    },
+    {
+      "item": "Fertilizantes",
+      "value_per_ha": 790.4,
+      "share_pct": 16.93
+    },
+    {
+      "item": "Terra Própria",
+      "value_per_ha": 512.09,
+      "share_pct": 10.97
+    },
+    {
+      "item": "Seguro da Produção",
+      "value_per_ha": 441.82,
+      "share_pct": 9.46
+    },
+    {
+      "item": "Remuneração esperada sobre o capital fixo",
+      "value_per_ha": 313.58,
+      "share_pct": 6.72
+    },
+    {
+      "item": "Arrendamento",
+      "value_per_ha": 303.6,
+      "share_pct": 6.5
+    }
+  ]
+}

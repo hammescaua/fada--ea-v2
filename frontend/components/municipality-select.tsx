@@ -18,6 +18,7 @@ interface MunicipalitySelectProps {
   includeEmpty?: boolean;
   emptyLabel?: string;
   id?: string;
+  disabled?: boolean;
 }
 
 export function MunicipalitySelect({
@@ -26,6 +27,7 @@ export function MunicipalitySelect({
   includeEmpty = false,
   emptyLabel = "Selecione...",
   id,
+  disabled = false,
 }: MunicipalitySelectProps) {
   const { data, isLoading, isError } = useMunicipalities();
 
@@ -34,7 +36,7 @@ export function MunicipalitySelect({
       id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      disabled={isLoading || isError}
+      disabled={disabled || isLoading || isError}
     >
       {isLoading && <option value="">Carregando municípios...</option>}
       {isError && <option value="">Erro ao carregar municípios</option>}

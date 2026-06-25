@@ -199,6 +199,247 @@ export interface AssistantResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Agronomic profile: personalização a priori (perfil padronizado do talhão)
+// ---------------------------------------------------------------------------
+
+export interface AgronomicFactorOption {
+  value: string;
+  label: string;
+  effect_pct: number;
+}
+
+export interface AgronomicFactor {
+  key: string;
+  question: string;
+  rationale: string;
+  confidence: string;
+  options: AgronomicFactorOption[];
+}
+
+export interface AppliedFactor {
+  key: string;
+  question: string;
+  option_label: string;
+  effect_pct: number;
+  rationale: string;
+  confidence: string;
+}
+
+export interface AgronomicEstimate {
+  municipality: string;
+  municipality_code: number;
+  crop: string;
+  season: string;
+  harvest_year: number;
+  regional: { point_sc_ha: number; interval_sc_ha: [number, number] };
+  personalized: {
+    point_sc_ha: number;
+    interval_sc_ha: [number, number];
+    scenarios: Scenario[];
+  };
+  adjustment: {
+    multiplier: number;
+    total_effect_pct: number;
+    clamped: boolean;
+    n_factors: number;
+    factors: AppliedFactor[];
+  };
+  recommendations: {
+    key: string;
+    question: string;
+    current_label: string;
+    target_label: string;
+    gain_pct: number;
+    gain_sc_ha: number;
+    rationale: string;
+    confidence: string;
+  }[];
+  water_sensitivity_note?: string | null;
+  climatic_risks: ClimaticRisk[];
+  data_sources: string[];
+  disclaimer: string;
+}
+
+export interface AgronomicEstimateRequest {
+  municipality: string;
+  crop?: string;
+  season?: string;
+  profile: Record<string, string>;
+}
+
+export interface SoilAnalysisRequest {
+  p_mehlich?: number;
+  k_mehlich?: number;
+  clay_pct?: number;
+  ctc?: number;
+  ph_water?: number;
+  al_saturation_pct?: number;
+  organic_matter_pct?: number;
+}
+
+export interface SoilAnalysisResult {
+  profile_fragment: Record<string, string>;
+  notes: { factor: string; value: string; basis: string }[];
+  disclaimer: string;
+}
+
+// ---------------------------------------------------------------------------
+// Season brief: planejamento pré-safra (síntese de decisão)
+// ---------------------------------------------------------------------------
+
+export interface SeasonBrief {
+  municipality: string;
+  municipality_code: number;
+  crop: string;
+  season: string;
+  harvest_year: number;
+  yield: {
+    expected_sc_ha: number;
+    interval_sc_ha: [number, number];
+    scenarios: Scenario[];
+    risks: ClimaticRisk[];
+    n_years: number;
+    personalized?: boolean;
+    adjustment?: {
+      multiplier: number;
+      total_effect_pct: number;
+      regional_point_sc_ha: number;
+      n_factors: number;
+      factors: AppliedFactor[];
+    } | null;
+  };
+  planting: {
+    zarc: {
+      safra: string;
+      portaria: string;
+      manejo: string;
+      windows_by_risk: Record<string, { start: string; end: string }[]>;
+    } | null;
+    best_date: {
+      planting_date: string;
+      expected_yield_sc_ha: number;
+      downside_sc_ha: number;
+      justification: string;
+    } | null;
+  };
+  price: {
+    price_per_bag: number;
+    source: string;
+    day?: string;
+    unit?: string;
+    is_stale?: boolean;
+  } | null;
+  cost: {
+    coe_per_ha: number;
+    cot_per_ha: number;
+    ct_per_ha: number;
+    source: string;
+    safra: string;
+  } | null;
+  margin: {
+    price_per_bag: number;
+    cost_basis: string;
+    cost_per_ha_cot: number;
+    break_even_yield_sc_ha: { coe: number; cot: number; ct: number };
+    scenarios: FinancialScenario[];
+    expected: {
+      yield_sc_ha: number;
+      revenue_per_ha: number;
+      profit_per_ha: number;
+      margin_pct: number;
+    };
+    cost_adjustment?: {
+      multiplier: number;
+      total_effect_pct: number;
+      reference_cot_per_ha: number;
+      factors: { key: string; option: string; effect_pct: number; rationale: string }[];
+    } | null;
+  } | null;
+  recommendations:
+    | {
+        key: string;
+        question: string;
+        current_label: string;
+        target_label: string;
+        gain_sc_ha: number;
+        yield_gain_rs_ha: number;
+        cost_change_rs_ha: number;
+        net_gain_rs_ha: number;
+        rationale: string;
+        confidence: string;
+      }[]
+    | null;
+  verdict: string;
+  data_sources: string[];
+  disclaimer: string;
+}
+
+// ---------------------------------------------------------------------------
+// ZARC: janela oficial de plantio (MAPA) — fonte de verdade do zoneamento
+// ---------------------------------------------------------------------------
+
+export interface ZarcWindow {
+  start: string; // MM-DD
+  end: string; // MM-DD
+}
+
+export interface ZarcPlantingWindow {
+  crop: string;
+  uf: string;
+  safra: string;
+  manejo: string;
+  portaria: string;
+  source: string;
+  fetched_at: string;
+  note: string;
+  municipality_code: number;
+  municipality_name: string;
+  windows_by_risk: Record<string, ZarcWindow[]>;
+  disclaimer: string;
+  planting_date: string | null;
+  within_zarc: boolean | null;
+  risk_level: number | null;
+  interpretation: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Weather: previsão + alertas agronômicos (Open-Meteo) — proativo, com incerteza
+// ---------------------------------------------------------------------------
+
+export interface WeatherAlert {
+  code: string;
+  severity: string; // "info" | "atenção" | "alerta"
+  title: string;
+  detail: string;
+  starts_on: string;
+  ends_on: string;
+  confidence: string; // "alta" | "média" | "baixa"
+  evidence: Record<string, unknown>;
+}
+
+export interface DailyForecastPoint {
+  day: string;
+  tmin: number;
+  tmax: number;
+  precipitation_mm: number;
+  precipitation_prob: number;
+  wind_max_kmh: number;
+}
+
+export interface WeatherForecast {
+  latitude: number;
+  longitude: number;
+  n_days: number;
+  from_day: string | null;
+  to_day: string | null;
+  location_source: string | null;
+  alerts: WeatherAlert[];
+  forecast: DailyForecastPoint[];
+  source: string;
+  disclaimer: string;
+}
+
+// ---------------------------------------------------------------------------
 // Ground truth: farms / fields / crop-cycles / observations
 // ---------------------------------------------------------------------------
 
@@ -362,13 +603,83 @@ export interface FinancialScenario {
 export interface Financials {
   breakdown: CostBreakdown;
   price_per_bag: number;
+  price_source: string;
   break_even_yield_sc_ha: number;
   yield_source: string;
   scenarios: FinancialScenario[];
 }
 
 export interface FinancialsRequest {
-  price_per_bag: number;
+  // Opcional: se omitido, o backend usa o preço esperado da safra ou a cotação
+  // CEPEA/ESALQ ao vivo (data pública oficial).
+  price_per_bag?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Market: preço observado de fonte oficial (CEPEA/ESALQ) — sem forecast
+// ---------------------------------------------------------------------------
+
+export interface PricePoint {
+  day: string;
+  value: number;
+}
+
+export interface PriceSummary {
+  latest_value: number;
+  latest_day: string;
+  n_points: number;
+  window_days: number;
+  mean_value: number;
+  min_value: number;
+  max_value: number;
+  change_pct: number;
+  staleness_days: number;
+  is_stale: boolean;
+}
+
+export interface MarketPrice {
+  crop: string;
+  source: string;
+  place: string;
+  unit: string;
+  fetched_at: string;
+  summary: PriceSummary;
+  series: PricePoint[];
+  disclaimer: string;
+}
+
+// Benchmark de custo de produção (referência regional CONAB) — sem juízo de valor.
+
+export interface CostComponent {
+  item: string;
+  value_per_ha: number;
+  share_pct: number;
+}
+
+export interface CostComparison {
+  actual_per_ha: number;
+  reference_label: string;
+  reference_per_ha: number;
+  delta_per_ha: number;
+  ratio_pct: number;
+  descriptor: string; // "abaixo" | "na média" | "acima"
+}
+
+export interface CostBenchmarkComparison {
+  crop: string;
+  uf: string;
+  safra: string;
+  technology: string;
+  source: string;
+  fetched_at: string;
+  coe_per_ha: number;
+  cot_per_ha: number;
+  ct_per_ha: number;
+  actual_cost_per_ha: number;
+  primary: string; // chave de references considerada principal (ex.: "coe")
+  references: Record<string, CostComparison>;
+  components: CostComponent[];
+  disclaimer: string;
 }
 
 export type ProductCategory =
@@ -569,6 +880,16 @@ async function patch<TBody, TResp>(path: string, body: TBody): Promise<TResp> {
   return handle<TResp>(
     await request(path, {
       method: "PATCH",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body),
+    })
+  );
+}
+
+async function put<TBody, TResp>(path: string, body: TBody): Promise<TResp> {
+  return handle<TResp>(
+    await request(path, {
+      method: "PUT",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify(body),
     })
@@ -795,6 +1116,73 @@ export interface DemoSeedResult {
 
 export const api = {
   getMunicipalities: () => get<Municipality[]>("/municipalities"),
+
+  getMarketPrice: (crop = "soja") =>
+    get<MarketPrice>(`/market/price?crop=${encodeURIComponent(crop)}`),
+
+  getCostBenchmark: (cycleId: number) =>
+    get<CostBenchmarkComparison>(`/crop-cycles/${cycleId}/cost-benchmark`),
+
+  getFarmWeather: (farmId: number) =>
+    get<WeatherForecast>(`/farms/${farmId}/weather`),
+
+  getAgronomicFactors: () => get<AgronomicFactor[]>("/agronomic/factors"),
+
+  classifySoilAnalysis: (body: SoilAnalysisRequest) =>
+    post<SoilAnalysisRequest, SoilAnalysisResult>("/agronomic/soil-analysis", body),
+
+  classifyPlantingWindow: (params: {
+    plantingDate: string;
+    municipality?: string;
+    fieldId?: number;
+  }) => {
+    const q = new URLSearchParams({ planting_date: params.plantingDate, crop: "soja", uf: "RS" });
+    if (params.fieldId != null) q.set("field_id", String(params.fieldId));
+    else if (params.municipality) q.set("municipality", params.municipality);
+    return get<{
+      profile_fragment: Record<string, string>;
+      within_zarc: boolean;
+      risk_level: number | null;
+      basis: string;
+    }>(`/agronomic/planting-window-class?${q.toString()}`);
+  },
+
+  postAgronomicEstimate: (body: AgronomicEstimateRequest) =>
+    post<AgronomicEstimateRequest, AgronomicEstimate>("/agronomic/estimate", body),
+
+  getFieldProfile: (fieldId: number) =>
+    get<{ field_id: number; profile: Record<string, string> }>(
+      `/fields/${fieldId}/agronomic-profile`
+    ),
+
+  saveFieldProfile: (fieldId: number, profile: Record<string, string>) =>
+    put<{ profile: Record<string, string> }, { field_id: number; profile: Record<string, string> }>(
+      `/fields/${fieldId}/agronomic-profile`,
+      { profile }
+    ),
+
+  getFieldEstimate: (fieldId: number, season = "2026/27") =>
+    get<AgronomicEstimate>(`/fields/${fieldId}/estimate?season=${encodeURIComponent(season)}`),
+
+  getSeasonBrief: (municipality: string, season = "2026/27", pricePerBag?: number) => {
+    const q = new URLSearchParams({ municipality, crop: "soja", uf: "RS", season });
+    if (pricePerBag) q.set("price_per_bag", String(pricePerBag));
+    return get<SeasonBrief>(`/planning/season-brief?${q.toString()}`);
+  },
+
+  getSeasonBriefForField: (fieldId: number, season = "2026/27", pricePerBag?: number) => {
+    const q = new URLSearchParams({
+      field_id: String(fieldId), crop: "soja", uf: "RS", season,
+    });
+    if (pricePerBag) q.set("price_per_bag", String(pricePerBag));
+    return get<SeasonBrief>(`/planning/season-brief?${q.toString()}`);
+  },
+
+  getZarcWindow: (municipality: string, plantingDate?: string) => {
+    const q = new URLSearchParams({ municipality, crop: "soja", uf: "RS" });
+    if (plantingDate) q.set("planting_date", plantingDate);
+    return get<ZarcPlantingWindow>(`/zarc/planting-window?${q.toString()}`);
+  },
 
   getSystemStatus: () => get<SystemStatus>("/system/status"),
 

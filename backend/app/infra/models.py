@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, func
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infra.db import Base
@@ -164,5 +164,22 @@ class FarmPerformanceProfileORM(Base):
     median_residual_sc_ha: Mapped[float] = mapped_column(Float)
     variance_relative: Mapped[float] = mapped_column(Float)
     last_updated: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class FieldAgronomicProfileORM(Base):
+    """Perfil agronômico padronizado de um talhão (um por talhão).
+
+    Guarda o perfil como JSON {chave_do_fator: valor}. É a personalização a priori
+    (ADR-0022): coletada uma vez, reusada na estimativa e no brief de safra.
+    """
+
+    __tablename__ = "field_agronomic_profiles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    field_id: Mapped[int] = mapped_column(ForeignKey("fields.id"), unique=True)
+    profile: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )

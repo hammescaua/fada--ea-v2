@@ -3,7 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, type EventType, type FarmDashboard } from "@/lib/api";
+import {
+  api,
+  type EventType,
+  type FarmDashboard,
+  type WeatherForecast,
+} from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { ConfidenceBadge } from "@/components/confidence-badge";
 import { ErrorBlock, LoadingBlock } from "@/components/states";
@@ -51,6 +56,15 @@ export default function HomePage() {
     queryKey: ["dashboard", farmId],
     queryFn: () => api.getDashboard(farmId as number),
     enabled: farmId !== null,
+  });
+
+  // Previsão + alertas (proativo). Pode falhar (fonte externa) — não bloqueia a tela.
+  const weather = useQuery<WeatherForecast>({
+    queryKey: ["farm-weather", farmId],
+    queryFn: () => api.getFarmWeather(farmId as number),
+    enabled: farmId !== null,
+    retry: false,
+    staleTime: 1000 * 60 * 30,
   });
 
   const hasFarms = !!farmsQuery.data && farmsQuery.data.length > 0;
@@ -116,6 +130,45 @@ export default function HomePage() {
       />
 
       <ConfidenceBadge />
+
+      {/* Previsão & alertas (proativo) — só aparece quando há fazenda selecionada */}
+      {farmId !== null && weather.data && weather.data.alerts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Previsão & alertas</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <ul className="space-y-2">
+              {weather.data.alerts.map((a, i) => {
+                const variant: BadgeProps["variant"] =
+                  a.severity === "alerta"
+                    ? "danger"
+                    : a.severity === "atenção"
+                      ? "warning"
+                      : "success";
+                return (
+                  <li key={i} className="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-3">
+                    <Badge variant={variant} className="w-fit shrink-0">
+                      {a.title}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {a.detail}{" "}
+                      <span className="text-xs">(confiança {a.confidence})</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="text-xs text-muted-foreground">
+              {weather.data.source}
+              {weather.data.location_source
+                ? ` · ${weather.data.location_source}`
+                : ""}
+              . {weather.data.disclaimer}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Registro rápido — flywheel (Fase 5.1) */}
       {hasFarms && ctx.cropCycleId !== null && (
