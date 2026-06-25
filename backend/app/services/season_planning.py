@@ -147,7 +147,9 @@ class SeasonPlanningService:
             "cost": cost_block,
             "margin": margin_block,
             "recommendations": recommendations_block,
-            "verdict": _verdict(reg["municipality"], expected, margin_block),
+            "verdict": _verdict(
+                reg["municipality"], expected, margin_block, recommendations_block
+            ),
             "data_sources": _sources(price_block, cost_block, planting_block),
             "disclaimer": (
                 "Síntese de apoio à decisão pré-safra a partir de dados públicos "
@@ -203,7 +205,10 @@ class SeasonPlanningService:
             return None
 
 
-def _verdict(municipality: str, expected: float, margin: dict | None) -> str:
+def _verdict(
+    municipality: str, expected: float, margin: dict | None,
+    recommendations: list[dict] | None = None,
+) -> str:
     if margin is None:
         return (
             f"Produtividade esperada de {expected} sc/ha em {municipality}. "
@@ -212,13 +217,22 @@ def _verdict(municipality: str, expected: float, margin: dict | None) -> str:
     exp = margin["expected"]
     be_cot = margin["break_even_yield_sc_ha"]["cot"]
     direction = "acima" if expected >= be_cot else "abaixo"
-    return (
+    base = (
         f"À produtividade esperada ({expected} sc/ha) e ao preço de "
         f"R$ {margin['price_per_bag']:.2f}/sc, a margem esperada sobre o custo "
         f"operacional total (CONAB) é R$ {exp['profit_per_ha']:.0f}/ha "
         f"({exp['margin_pct']:.0f}%). O ponto de equilíbrio é {be_cot} sc/ha — a "
         f"expectativa está {direction} dele."
     )
+    if recommendations:
+        top = recommendations[0]
+        if top["net_gain_rs_ha"] > 0:
+            base += (
+                f" Ação de maior retorno: {top['question'].lower()} "
+                f"({top['current_label']} → {top['target_label']}), "
+                f"+R$ {top['net_gain_rs_ha']:.0f}/ha líquidos."
+            )
+    return base
 
 
 def _sources(price: dict | None, cost: dict | None, planting: dict) -> list[str]:
