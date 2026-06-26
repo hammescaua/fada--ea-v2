@@ -5,27 +5,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-// Destinos primários — pensados no trabalho do agricultor, não na arquitetura.
+// Destinos primários — os 5 trabalhos do agricultor (aparecem no menu inferior do
+// celular). As joias do produto (previsão do talhão e plano de safra) vêm na frente.
 const primary = [
   { href: "/home", label: "Início" },
-  { href: "/planejamento", label: "Planejar" },
+  { href: "/perfil-talhao", label: "Meu Talhão" },
+  { href: "/planejar-safra", label: "Planejar Safra" },
   { href: "/safra", label: "Minha Lavoura" },
-  { href: "/financeiro", label: "Financeiro" },
   { href: "/assistant", label: "Assistente" },
 ];
 
-// Ferramentas avançadas — agrupadas e colapsadas (linguagem de produtor).
+// Ferramentas — agrupadas e colapsadas (analítico/avançado, linguagem de produtor).
 const advanced = [
-  { href: "/planejar-safra", label: "Planejar a Safra" },
-  { href: "/perfil-talhao", label: "Perfil do Talhão" },
-  { href: "/guia", label: "Guia Agronômico" },
-  { href: "/", label: "Estimativa da Região" },
-  { href: "/planting/simulate", label: "Simular Data de Plantio" },
-  { href: "/planting/optimize", label: "Melhor Janela de Plantio" },
-  { href: "/insights", label: "Análise dos Talhões" },
-  { href: "/decisoes", label: "Onde Olhar Primeiro" },
-  { href: "/adaptive", label: "Personalização da Fazenda" },
-  { href: "/farms", label: "Captura de Dados" },
+  { href: "/decisoes", label: "Onde olhar primeiro" },
+  { href: "/financeiro", label: "Financeiro" },
+  { href: "/planejamento", label: "Orçamento da safra" },
+  { href: "/guia", label: "Guia agronômico" },
+  { href: "/", label: "Estimativa da região" },
+  { href: "/planting/optimize", label: "Melhor janela de plantio" },
+  { href: "/planting/simulate", label: "Simular data de plantio" },
+  { href: "/insights", label: "Análise dos talhões" },
+  { href: "/adaptive", label: "Personalização (histórico)" },
+  { href: "/farms", label: "Cadastro de dados" },
 ];
 
 // Rodapé discreto — "sobre o modelo".

@@ -30,12 +30,11 @@ function levelVariant(level: string): BadgeProps["variant"] {
 }
 
 const MORE_TOOLS = [
-  { href: "/", label: "Inteligência Regional" },
-  { href: "/planting/optimize", label: "Otimizar Plantio" },
+  { href: "/perfil-talhao", label: "Meu Talhão — previsão e o que fazer" },
+  { href: "/planejar-safra", label: "Planejar Safra — margem e quando plantar" },
+  { href: "/decisoes", label: "Onde olhar primeiro" },
   { href: "/financeiro", label: "Financeiro" },
-  { href: "/adaptive", label: "Inteligência Adaptativa" },
-  { href: "/calibration", label: "Calibração" },
-  { href: "/system", label: "Sistema" },
+  { href: "/guia", label: "Guia agronômico" },
 ];
 
 export default function HomePage() {
@@ -493,7 +492,7 @@ export default function HomePage() {
       {/* Mais ferramentas (acesso no mobile) */}
       <Card>
         <CardHeader>
-          <CardTitle>Mais ferramentas</CardTitle>
+          <CardTitle>Comece por aqui</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
