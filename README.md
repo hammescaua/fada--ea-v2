@@ -22,6 +22,10 @@ linguagem natural (Claude) para orquestração e explicação.
 4. **Modular monolith.** Um único deploy, *bounded contexts* com fronteiras limpas
    (DDD). Extrai-se em serviço só quando a escala exigir — não antes.
 
+> **V2 (atual):** previsão **personalizada por talhão, antes de plantar**, com dados
+> públicos oficiais e honestidade visível. Visão completa e estado de conclusão em
+> [`docs/V2_OVERVIEW.md`](docs/V2_OVERVIEW.md).
+
 ## Estado atual — V1 utilizável
 
 Produto completo de apoio à decisão na safra de soja (microrregião Três Passos,
