@@ -23,6 +23,7 @@ from app.domain.agronomy.profile import (
     UnknownFactor,
     compute_adjustment,
     planting_window_class,
+    profile_completeness,
     validate_profile,
 )
 from app.domain.agronomy.recommendations import (
@@ -66,6 +67,7 @@ __all__ = [
     "looks_explanatory",
     "search_knowledge",
     "planting_window_class",
+    "profile_completeness",
     "recommendations",
     "scenario_multipliers",
     "validate_profile",

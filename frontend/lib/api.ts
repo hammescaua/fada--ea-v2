@@ -272,6 +272,14 @@ export interface AgronomicEstimate {
   disclaimer: string;
 }
 
+export interface ProfileCompleteness {
+  filled: string[];
+  missing: string[];
+  filled_count: number;
+  essential_total: number;
+  pct: number;
+}
+
 export interface AgronomicEstimateRequest {
   municipality: string;
   crop?: string;
@@ -1276,9 +1284,11 @@ export const api = {
     post<AgronomicEstimateRequest, AgronomicEstimate>("/agronomic/estimate", body),
 
   getFieldProfile: (fieldId: number) =>
-    get<{ field_id: number; profile: Record<string, string> }>(
-      `/fields/${fieldId}/agronomic-profile`
-    ),
+    get<{
+      field_id: number;
+      profile: Record<string, string>;
+      completeness?: ProfileCompleteness;
+    }>(`/fields/${fieldId}/agronomic-profile`),
 
   saveFieldProfile: (fieldId: number, profile: Record<string, string>) =>
     put<{ profile: Record<string, string> }, { field_id: number; profile: Record<string, string> }>(

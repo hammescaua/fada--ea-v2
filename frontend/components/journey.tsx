@@ -113,11 +113,12 @@ export function JourneyGuide({
   });
 
   const fields = hasFarms ? fieldsQuery.data : [];
+  // Perfil "pronto" para a jornada = ao menos metade dos fatores essenciais.
   const profileFilled =
     firstFieldId === null
       ? undefined
       : profileQuery.data
-        ? Object.keys(profileQuery.data.profile ?? {}).length > 0
+        ? (profileQuery.data.completeness?.pct ?? 0) >= 50
         : profileQuery.isLoading
           ? undefined
           : false;

@@ -16,6 +16,7 @@ from app.domain.agronomy import (
     UnknownFactor,
     classify_soil_analysis,
     planting_window_class,
+    profile_completeness,
     validate_profile,
 )
 from app.infra.db import get_session
@@ -241,7 +242,11 @@ def get_field_profile_endpoint(
     if FarmRepository(session).get_field(field_id) is None:
         raise HTTPException(404, f"Talhão {field_id} inexistente.")
     profile = AgronomicProfileRepository(session).get(field_id) or {}
-    return AgronomicProfileResponse(field_id=field_id, profile=profile)
+    return AgronomicProfileResponse(
+        field_id=field_id,
+        profile=profile,
+        completeness=profile_completeness(profile),
+    )
 
 
 @router.put("/fields/{field_id}/agronomic-profile", response_model=AgronomicProfileResponse)

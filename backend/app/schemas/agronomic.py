@@ -65,9 +65,18 @@ class SoilAnalysisResponse(BaseModel):
     disclaimer: str
 
 
+class ProfileCompleteness(BaseModel):
+    filled: list[str]
+    missing: list[str]
+    filled_count: int
+    essential_total: int
+    pct: int
+
+
 class AgronomicProfileResponse(BaseModel):
     field_id: int
     profile: dict[str, str]
+    completeness: ProfileCompleteness | None = None
 
 
 class AppliedFactorOut(BaseModel):

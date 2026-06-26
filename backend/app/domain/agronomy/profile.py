@@ -160,6 +160,24 @@ ESSENTIAL_FACTORS: frozenset[str] = frozenset({
 })
 
 
+def profile_completeness(profile: dict[str, str]) -> dict:
+    """Quão completo está o perfil nos fatores essenciais (qualidade da previsão).
+
+    Mede só os fatores essenciais — os que mais movem a estimativa. Determinístico;
+    ignora chaves desconhecidas. ``pct`` em 0–100.
+    """
+    filled = sorted(ESSENTIAL_FACTORS & {k for k, v in profile.items() if v})
+    missing = sorted(ESSENTIAL_FACTORS - set(filled))
+    total = len(ESSENTIAL_FACTORS)
+    return {
+        "filled": filled,
+        "missing": missing,
+        "filled_count": len(filled),
+        "essential_total": total,
+        "pct": round(100 * len(filled) / total) if total else 0,
+    }
+
+
 def planting_window_class(within_zarc: bool, risk_level: int | None) -> str:
     """Mapeia a avaliação ZARC de uma data para o fator 'janela_plantio'.
 

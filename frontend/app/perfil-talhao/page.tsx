@@ -165,6 +165,17 @@ export default function PerfilTalhaoPage() {
   const canEstimate = fieldMode || municipality !== "";
   const answered = Object.values(profile).filter((v) => v !== "").length;
 
+  // Completude dos fatores essenciais (qualidade da previsão) — ao vivo.
+  const essentialKeys = (factors.data ?? []).filter((f) => f.essential).map((f) => f.key);
+  const essentialFilled = essentialKeys.filter((k) => (profile[k] ?? "") !== "");
+  const essentialMissing = (factors.data ?? []).filter(
+    (f) => f.essential && (profile[f.key] ?? "") === ""
+  );
+  const completenessPct =
+    essentialKeys.length > 0
+      ? Math.round((100 * essentialFilled.length) / essentialKeys.length)
+      : 0;
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -351,6 +362,42 @@ export default function PerfilTalhaoPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {essentialKeys.length > 0 && (
+            <div className="mb-4 space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium">
+                  Perfil essencial · {essentialFilled.length}/{essentialKeys.length}
+                </span>
+                <span className="text-muted-foreground tabular-nums">
+                  {completenessPct}%
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className={
+                    "h-full rounded-full transition-all " +
+                    (completenessPct >= 75
+                      ? "bg-emerald-500"
+                      : completenessPct >= 40
+                        ? "bg-amber-500"
+                        : "bg-red-400")
+                  }
+                  style={{ width: `${completenessPct}%` }}
+                />
+              </div>
+              {essentialMissing.length > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  Quanto mais completo, mais confiável a previsão. Falta:{" "}
+                  {essentialMissing.slice(0, 3).map((f) => f.question).join("; ")}
+                  {essentialMissing.length > 3 ? "…" : "."}
+                </p>
+              ) : (
+                <p className="text-xs text-emerald-700">
+                  Perfil essencial completo — previsão no maior grau de confiança.
+                </p>
+              )}
+            </div>
+          )}
           {quickMode && (
             <p className="mb-3 text-xs text-muted-foreground">
               Modo rápido: responda só o essencial (o que mais pesa). O resto assume o

@@ -12,6 +12,7 @@ from app.domain.agronomy import (
     apply_adjustment,
     compute_adjustment,
     planting_window_class,
+    profile_completeness,
 )
 from app.main import app
 
@@ -44,6 +45,29 @@ def test_planting_window_class_endpoint():
 
 
 # -- matriz / motor (puro) --------------------------------------------------
+
+def test_profile_completeness_empty():
+    c = profile_completeness({})
+    assert c["filled_count"] == 0
+    assert c["pct"] == 0
+    assert c["essential_total"] == len(c["missing"])
+
+
+def test_profile_completeness_counts_only_essentials():
+    # 2 essenciais + 1 não-essencial preenchidos → conta só os essenciais
+    c = profile_completeness(
+        {"cultivar": "alta", "fungicida": "duas", "compactacao": "ausente"}
+    )
+    assert c["filled_count"] == 2
+    assert "cultivar" in c["filled"] and "fungicida" in c["filled"]
+    assert "compactacao" not in c["filled"]
+    assert c["pct"] == round(100 * 2 / c["essential_total"])
+
+
+def test_profile_completeness_ignores_blank_values():
+    c = profile_completeness({"cultivar": "", "fungicida": "duas"})
+    assert c["filled"] == ["fungicida"]
+
 
 def test_empty_profile_is_neutral():
     adj = compute_adjustment({})
