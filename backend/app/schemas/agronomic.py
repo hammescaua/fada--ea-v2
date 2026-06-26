@@ -16,7 +16,17 @@ class FactorOut(BaseModel):
     question: str
     rationale: str
     confidence: str
+    explanation: str | None = None
+    sources: list[str] = []
     options: list[FactorOptionOut]
+
+
+class KnowledgeEntryOut(BaseModel):
+    key: str
+    title: str
+    explanation: str
+    practical: str
+    sources: list[str]
 
 
 class AgronomicEstimateRequest(BaseModel):

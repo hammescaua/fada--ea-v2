@@ -3,7 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { api, type Decisions, type Farm } from "@/lib/api";
+import {
+  api,
+  type Decisions,
+  type DecisionCards,
+  type Farm,
+  type Field,
+} from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { ErrorBlock, LoadingBlock } from "@/components/states";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { EvidenceRows } from "@/components/how-we-got-here";
+import { DecisionCardItem } from "@/components/decision-card";
 import { formatNumber } from "@/lib/utils";
 
 function levelVariant(level: string): BadgeProps["variant"] {
@@ -42,17 +49,31 @@ export default function DecisoesPage() {
     }
   }, [farmsQuery.data, farmId]);
 
+  const [fieldId, setFieldId] = React.useState<number | null>(null);
+  const fieldsQuery = useQuery<Field[]>({
+    queryKey: ["fields", farmId],
+    queryFn: () => api.getFields(farmId as number),
+    enabled: farmId !== null,
+  });
+
   const query = useQuery<Decisions>({
     queryKey: ["decisions", farmId],
     queryFn: () => api.getDecisions(farmId as number),
     enabled: farmId !== null,
   });
 
+  const cardsQuery = useQuery<DecisionCards>({
+    queryKey: ["decision-cards", farmId, fieldId],
+    queryFn: () => api.getDecisionCards(farmId as number, fieldId ?? undefined),
+    enabled: farmId !== null,
+    retry: false,
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Decisões — atenção por talhão"
-        description="Onde olhar primeiro. Sem score mágico: cada talhão mostra os alertas nomeados que disparou, com evidência e confiança."
+        title="Decisões — onde olhar e o que está em jogo"
+        description="O hub de decisão: clima (proativo), manejo (efeito em R$/ha) e histórico, no mesmo formato. Cada efeito vem com intervalo; previsão e estimativas nunca como certeza."
       />
 
       <Card>
@@ -70,23 +91,57 @@ export default function DecisoesPage() {
               .
             </p>
           ) : (
-            <div className="max-w-sm space-y-2">
-              <Label htmlFor="farm">Fazenda</Label>
-              <Select
-                id="farm"
-                value={farmId ?? ""}
-                onChange={(e) => setFarmId(Number(e.target.value))}
-              >
-                {farmsQuery.data.map((f: Farm) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
-                  </option>
-                ))}
-              </Select>
+            <div className="grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="farm">Fazenda</Label>
+                <Select
+                  id="farm"
+                  value={farmId ?? ""}
+                  onChange={(e) => {
+                    setFarmId(Number(e.target.value));
+                    setFieldId(null);
+                  }}
+                >
+                  {farmsQuery.data.map((f: Farm) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="field">Talhão (habilita cartões de manejo)</Label>
+                <Select
+                  id="field"
+                  value={fieldId ?? ""}
+                  onChange={(e) => setFieldId(e.target.value ? Number(e.target.value) : null)}
+                >
+                  <option value="">— todos / só clima e histórico —</option>
+                  {(fieldsQuery.data ?? []).map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* HUB: cartões de decisão unificados */}
+      {farmId !== null && cardsQuery.data && cardsQuery.data.cards.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Cartões de decisão {fieldId === null && "(selecione um talhão para ver o manejo em R$/ha)"}
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {cardsQuery.data.cards.map((c) => (
+              <DecisionCardItem key={c.id} card={c} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {farmId !== null && (
         <>

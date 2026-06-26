@@ -213,7 +213,17 @@ export interface AgronomicFactor {
   question: string;
   rationale: string;
   confidence: string;
+  explanation?: string | null;
+  sources?: string[];
   options: AgronomicFactorOption[];
+}
+
+export interface KnowledgeEntry {
+  key: string;
+  title: string;
+  explanation: string;
+  practical: string;
+  sources: string[];
 }
 
 export interface AppliedFactor {
@@ -265,6 +275,49 @@ export interface AgronomicEstimateRequest {
   crop?: string;
   season?: string;
   profile: Record<string, string>;
+}
+
+export interface ManejoHistory {
+  field_id: number;
+  field_name: string;
+  n_seasons: number;
+  history: {
+    crop_cycle_id: number;
+    season: string;
+    harvest_year: number;
+    manejo_source: string;
+    manejo_effect_pct: number;
+    n_factors: number;
+    predicted_sc_ha: number | null;
+    actual_sc_ha: number | null;
+    delta_vs_predicted_pct: number | null;
+  }[];
+  note: string;
+}
+
+export interface FieldLearnedEstimate {
+  field_id: number;
+  field_name: string;
+  season: string;
+  regional: { point_sc_ha: number; interval_sc_ha: [number, number] };
+  a_priori_profile_pct: number;
+  observed_from_harvests_pct: number;
+  applied_pct: number;
+  n_harvests: number;
+  confidence_score: number;
+  adaptation_level: string;
+  learned: {
+    point_sc_ha: number;
+    interval_sc_ha: [number, number];
+    scenarios: Scenario[];
+  };
+  residual_history: {
+    harvest_year: number;
+    actual_sc_ha: number;
+    regional_fitted_sc_ha: number;
+    residual_pct: number;
+  }[];
+  explanation: string;
 }
 
 export interface SoilAnalysisRequest {
@@ -1067,6 +1120,37 @@ export interface Decisions {
   note: string;
 }
 
+// Decision Cards — contrato único de recomendação (clima/manejo/histórico)
+// ---------------------------------------------------------------------------
+
+export interface DecisionEffect {
+  basis: string;
+  yield_sc_ha: [number, number, number] | null;
+  profit_brl_ha: [number, number, number] | null;
+}
+
+export interface DecisionCard {
+  id: string;
+  source: string; // "clima" | "manejo" | "historico"
+  decision: string;
+  recommendation: string;
+  confidence: string; // "alta" | "moderada" | "baixa"
+  horizon: string;
+  disclaimer: string;
+  n_data: number;
+  severity: string;
+  effect: DecisionEffect | null;
+  why: { label: string; detail: string }[];
+}
+
+export interface DecisionCards {
+  farm_id: number;
+  field_id: number | null;
+  n_cards: number;
+  cards: DecisionCard[];
+  note: string;
+}
+
 // Platform: system status, dashboard, demo
 // ---------------------------------------------------------------------------
 
@@ -1126,7 +1210,23 @@ export const api = {
   getFarmWeather: (farmId: number) =>
     get<WeatherForecast>(`/farms/${farmId}/weather`),
 
+  getFieldLearnedEstimate: (fieldId: number, season = "2026/27") =>
+    get<FieldLearnedEstimate>(
+      `/fields/${fieldId}/learned-estimate?season=${encodeURIComponent(season)}`
+    ),
+
+  getManejoHistory: (fieldId: number) =>
+    get<ManejoHistory>(`/fields/${fieldId}/manejo-history`),
+
+  saveCycleManejo: (cycleId: number, profile: Record<string, string>) =>
+    put<{ profile: Record<string, string> }, { profile: Record<string, string> }>(
+      `/crop-cycles/${cycleId}/manejo`,
+      { profile }
+    ),
+
   getAgronomicFactors: () => get<AgronomicFactor[]>("/agronomic/factors"),
+
+  getAgronomicKnowledge: () => get<KnowledgeEntry[]>("/agronomic/knowledge"),
 
   classifySoilAnalysis: (body: SoilAnalysisRequest) =>
     post<SoilAnalysisRequest, SoilAnalysisResult>("/agronomic/soil-analysis", body),
@@ -1193,6 +1293,12 @@ export const api = {
   operationsCsvUrl: (farmId: number) => `${API_V1}/farms/${farmId}/operations.csv`,
 
   getDecisions: (farmId: number) => get<Decisions>(`/farms/${farmId}/decisions`),
+
+  getDecisionCards: (farmId: number, fieldId?: number, season = "2026/27") => {
+    const q = new URLSearchParams({ season });
+    if (fieldId != null) q.set("field_id", String(fieldId));
+    return get<DecisionCards>(`/farms/${farmId}/decision-cards?${q.toString()}`);
+  },
 
   getPlanVsActual: (cycleId: number) =>
     get<PlanVsActual>(`/crop-cycles/${cycleId}/plan-vs-actual`),

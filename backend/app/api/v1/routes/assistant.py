@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.routes.planting_date import _service as _planting_service
 from app.api.v1.routes.regional_intelligence import _model
+from app.domain.agronomy import grounded_answer, looks_explanatory, search_knowledge
 from app.engine import build_explainer
 from app.engine.orchestrator import DeterministicRouter, Orchestrator
 from app.infra.db import get_session
@@ -65,6 +66,23 @@ def get_orchestrator(session: Session = Depends(get_session)) -> Orchestrator:
 def assistant(
     body: AssistantRequest, orch: Orchestrator = Depends(get_orchestrator)
 ) -> AssistantResponse:
+    # Trilha de conhecimento (RAG-lite): perguntas explicativas são respondidas pela
+    # base citável; perguntas de número seguem para o domínio determinístico.
+    if looks_explanatory(body.message):
+        entries = search_knowledge(body.message)
+        if entries:
+            return AssistantResponse(
+                intent="knowledge",
+                parameters={"query": body.message},
+                answer=grounded_answer(entries),
+                result={
+                    "sources": sorted({s for e in entries for s in e.sources}),
+                    "entries": [
+                        {"key": e.key, "title": e.title, "sources": list(e.sources)}
+                        for e in entries
+                    ],
+                },
+            )
     return AssistantResponse(
         **orch.handle(
             body.message, ctx_municipality=body.municipality,

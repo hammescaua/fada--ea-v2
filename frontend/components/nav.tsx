@@ -18,6 +18,7 @@ const primary = [
 const advanced = [
   { href: "/planejar-safra", label: "Planejar a Safra" },
   { href: "/perfil-talhao", label: "Perfil do Talhão" },
+  { href: "/guia", label: "Guia Agronômico" },
   { href: "/", label: "Estimativa da Região" },
   { href: "/planting/simulate", label: "Simular Data de Plantio" },
   { href: "/planting/optimize", label: "Melhor Janela de Plantio" },

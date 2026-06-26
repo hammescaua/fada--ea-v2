@@ -20,6 +20,7 @@ from app.domain.farm import (
 from app.domain.planning import PlannedEvent
 from app.infra.models import (
     AgriculturalEventORM,
+    CropCycleManejoORM,
     CropCycleORM,
     EventPresetORM,
     FarmORM,
@@ -147,6 +148,14 @@ class FarmRepository:
     def field_of_cycle(self, cycle_id: int) -> Field | None:
         o = self.s.get(CropCycleORM, cycle_id)
         return _field(self.s.get(FieldORM, o.field_id)) if o else None
+
+    def list_cycles_by_field(self, field_id: int) -> list[CropCycle]:
+        stmt = (
+            select(CropCycleORM)
+            .where(CropCycleORM.field_id == field_id)
+            .order_by(CropCycleORM.harvest_year)
+        )
+        return [_cycle(o) for o in self.s.scalars(stmt)]
 
     def list_cycles_by_farm(self, farm_id: int) -> list[CropCycle]:
         stmt = (
@@ -358,6 +367,31 @@ class AgronomicProfileRepository:
         )
         if o is None:
             o = FieldAgronomicProfileORM(field_id=field_id, profile=profile)
+            self.s.add(o)
+        else:
+            o.profile = profile
+        self.s.commit()
+        self.s.refresh(o)
+        return dict(o.profile)
+
+    def get_cycle(self, crop_cycle_id: int) -> dict | None:
+        o = self.s.scalar(
+            select(CropCycleManejoORM).where(
+                CropCycleManejoORM.crop_cycle_id == crop_cycle_id
+            )
+        )
+        return dict(o.profile) if o else None
+
+    def upsert_cycle(self, crop_cycle_id: int, profile: dict[str, str]) -> dict:
+        if self.s.get(CropCycleORM, crop_cycle_id) is None:
+            raise LookupError(f"CropCycle {crop_cycle_id} inexistente")
+        o = self.s.scalar(
+            select(CropCycleManejoORM).where(
+                CropCycleManejoORM.crop_cycle_id == crop_cycle_id
+            )
+        )
+        if o is None:
+            o = CropCycleManejoORM(crop_cycle_id=crop_cycle_id, profile=profile)
             self.s.add(o)
         else:
             o.profile = profile

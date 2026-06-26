@@ -66,7 +66,7 @@ export default function AssistantPage() {
     <div>
       <PageHeader
         title="Assistente FADA"
-        description="Faça perguntas em linguagem natural sobre produtividade, plantio, custos e riscos da soja no RS."
+        description="Pergunte sobre números (produtividade, plantio, custos, risco) — respondidos pelo domínio — ou sobre o porquê agronômico — explicado com fonte citada. O FADA nunca inventa número."
       />
 
       {ctx.farmId !== null && (
@@ -97,10 +97,25 @@ export default function AssistantPage() {
       <div className="flex h-[60vh] flex-col rounded-lg border border-border bg-card">
         <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
           {messages.length === 0 && !mutation.isPending && (
-            <div className="flex h-full items-center justify-center text-center text-sm text-muted-foreground">
-              Comece perguntando, por exemplo:
-              <br />
-              &ldquo;Qual a melhor data de plantio em Santa Rosa?&rdquo;
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
+              <span>Experimente perguntar:</span>
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  "Qual a melhor data de plantio em Santa Rosa?",
+                  "Por que aplicar fungicida na soja?",
+                  "O que é veranico?",
+                  "Vale a pena fazer inoculação?",
+                ].map((ex) => (
+                  <button
+                    key={ex}
+                    type="button"
+                    onClick={() => setMessage(ex)}
+                    className="rounded-full border border-border px-3 py-1 text-xs hover:bg-muted hover:text-foreground"
+                  >
+                    {ex}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {messages.map((m, i) => (
