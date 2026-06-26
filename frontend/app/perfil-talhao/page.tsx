@@ -105,6 +105,19 @@ export default function PerfilTalhaoPage() {
     { key: "al_saturation_pct", label: "Sat. Al — m (%)" },
     { key: "organic_matter_pct", label: "MO (%)" },
   ];
+  // Sugestão de solo pela localização (EMBRAPA) — só no modo talhão.
+  const [soilSugNote, setSoilSugNote] = React.useState<string | null>(null);
+  const soilSuggest = useMutation({
+    mutationFn: () => api.getFieldSoilSuggestion(fieldId as number),
+    onSuccess: (res) => {
+      setProfile((s) => ({ ...s, ...res.profile_fragment }));
+      setSoilSugNote(
+        `Solo dominante: ${res.ordem_dominante} (confiança ${res.confidence}). ` +
+          `${res.note ?? ""} Fonte: ${res.source ?? ""}.`
+      );
+    },
+  });
+
   const soilMutation = useMutation<SoilAnalysisResult, Error>({
     mutationFn: () => {
       const body = Object.fromEntries(
@@ -230,6 +243,21 @@ export default function PerfilTalhaoPage() {
             Digite os valores do laudo — o FADA classifica fertilidade e acidez pelas
             faixas CQFS-RS/SC e preenche os fatores correspondentes (você pode ajustar).
           </p>
+          {fieldMode && (
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => soilSuggest.mutate()}
+                disabled={soilSuggest.isPending}
+              >
+                {soilSuggest.isPending && <Spinner />}
+                Sugerir solo pela localização (EMBRAPA)
+              </Button>
+              {soilSugNote && (
+                <span className="text-xs text-muted-foreground">{soilSugNote}</span>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
             {soilFields.map((f) => (
               <div key={f.key} className="space-y-1">

@@ -338,6 +338,16 @@ export interface SoilAnalysisResult {
   disclaimer: string;
 }
 
+export interface SoilSuggestion {
+  field_id: number;
+  municipality_code: number;
+  ordem_dominante: string | null;
+  confidence: string | null;
+  profile_fragment: Record<string, string>;
+  source: string | null;
+  note: string | null;
+}
+
 // ---------------------------------------------------------------------------
 // Season brief: planejamento pré-safra (síntese de decisão)
 // ---------------------------------------------------------------------------
@@ -1220,6 +1230,9 @@ export const api = {
 
   getManejoHistory: (fieldId: number) =>
     get<ManejoHistory>(`/fields/${fieldId}/manejo-history`),
+
+  getFieldSoilSuggestion: (fieldId: number) =>
+    get<SoilSuggestion>(`/fields/${fieldId}/soil-suggestion`),
 
   saveCycleManejo: (cycleId: number, profile: Record<string, string>) =>
     put<{ profile: Record<string, string> }, { profile: Record<string, string> }>(

@@ -1,0 +1,227 @@
+{
+  "source": "EMBRAPA Solos — Mapa de Solos do Brasil (SiBCS, ~1:5.000.000)",
+  "fetched_at": "2026-06-26",
+  "note": "Sugestão aproximada por ordem dominante do município; confirme no campo.",
+  "municipalities": {
+    "4301859": {
+      "name": "Barra do Guarita",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4302204": {
+      "name": "Boa Vista do Buricá",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4302378": {
+      "name": "Bom Progresso",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4302600": {
+      "name": "Braga",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4304002": {
+      "name": "Campo Novo",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4306007": {
+      "name": "Crissiumal",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4306320": {
+      "name": "Derrubadas",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4306734": {
+      "name": "Doutor Maurício Cardoso",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.52,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4307450": {
+      "name": "Esperança do Sul",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4309605": {
+      "name": "Horizontina",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.52,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4309704": {
+      "name": "Humaitá",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4312302": {
+      "name": "Miraguaí",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4313011": {
+      "name": "Nova Candelária",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4315404": {
+      "name": "Redentora",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4319109": {
+      "name": "São Martinho",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4320230": {
+      "name": "Sede Nova",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4321402": {
+      "name": "Tenente Portela",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4321477": {
+      "name": "Tiradentes do Sul",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4321907": {
+      "name": "Três Passos",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    },
+    "4323705": {
+      "name": "Vista Gaúcha",
+      "ordem_dominante": "LATOSSOLOS",
+      "classe_dom": "LVdf",
+      "area_share": 0.57,
+      "confidence": "baixa",
+      "suggestion": {
+        "profundidade_solo": "profundo",
+        "textura_solo": "argiloso"
+      }
+    }
+  }
+}

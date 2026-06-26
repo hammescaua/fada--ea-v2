@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.routes.regional_intelligence import _model
 from app.api.v1.routes.regional_intelligence import get_service as _regional_service
+from app.data.connectors.soil_suggestion import SoilSuggestionStore
 from app.data.connectors.zarc_store import ZarcStore
 from app.domain.agronomy import (
     SoilAnalysis,
@@ -170,6 +171,32 @@ def field_manejo_history_endpoint(
         return _field_learning(session).manejo_history(field_id)
     except FieldNotFound as exc:
         raise HTTPException(404, f"Talhão {exc} inexistente.") from exc
+
+
+@router.get("/fields/{field_id}/soil-suggestion")
+def field_soil_suggestion_endpoint(
+    field_id: int, session: Session = Depends(get_session)
+) -> dict:
+    """Sugere fatores de solo (textura/profundidade/drenagem) pela EMBRAPA Solos."""
+    farms = FarmRepository(session)
+    field = farms.get_field(field_id)
+    if field is None:
+        raise HTTPException(404, f"Talhão {field_id} inexistente.")
+    farm = farms.get_farm(field.farm_id)
+    sug = SoilSuggestionStore().for_municipality(farm.municipality_code)
+    if sug is None:
+        raise HTTPException(
+            404, "Sem sugestão de solo para o município (rode build_soil_suggestions)."
+        )
+    return {
+        "field_id": field_id,
+        "municipality_code": farm.municipality_code,
+        "ordem_dominante": sug.get("ordem_dominante"),
+        "confidence": sug.get("confidence"),
+        "profile_fragment": sug.get("suggestion", {}),
+        "source": sug.get("source"),
+        "note": sug.get("note"),
+    }
 
 
 @router.get("/crop-cycles/{cycle_id}/manejo", response_model=AgronomicProfileResponse)
