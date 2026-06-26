@@ -14,6 +14,7 @@ from app.infra.models import (
     FieldORM,
 )
 from app.services.calibration import REPORT_PATH
+from app.services.data_health import data_sources_health
 
 
 def system_status(session: Session) -> dict:
@@ -28,6 +29,7 @@ def system_status(session: Session) -> dict:
         },
         "calibration_report": {"present": REPORT_PATH.exists()},
         "counts": counts,
+        "data_sources": data_sources_health(),
     }
 
 

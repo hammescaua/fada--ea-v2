@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { api, type SystemStatus } from "@/lib/api";
+import { api, type DataSourceHealth, type SystemStatus } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { ErrorBlock, LoadingBlock } from "@/components/states";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,19 @@ function statusVariant(status: string): BadgeProps["variant"] {
   if (status === "ok") return "success";
   if (status === "degraded") return "warning";
   return "danger";
+}
+
+function sourceVariant(status: string): BadgeProps["variant"] {
+  if (status === "atual" || status === "ok") return "success";
+  if (status === "desatualizado") return "warning";
+  return "secondary";
+}
+
+function ageLabel(d: DataSourceHealth): string {
+  if (d.status === "ausente") return "ausente";
+  if (d.age_days === null) return d.fetched_at ?? "—";
+  if (d.age_days === 0) return "hoje";
+  return `há ${d.age_days} dia${d.age_days === 1 ? "" : "s"}`;
 }
 
 const COUNT_LABELS: Record<string, string> = {
@@ -88,6 +101,39 @@ export default function SystemPage() {
               <Stat key={key} label={COUNT_LABELS[key] ?? key} value={`${value}`} />
             ))}
           </div>
+
+          {query.data.data_sources && query.data.data_sources.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Fontes públicas — frescor dos dados</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {query.data.data_sources.map((d) => (
+                  <div
+                    key={d.label}
+                    className="flex flex-col gap-1 border-b border-border pb-2 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <span className="font-medium">{d.label}</span>
+                      {d.source && (
+                        <span className="text-muted-foreground"> · {d.source}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {ageLabel(d)}
+                      </span>
+                      <Badge variant={sourceVariant(d.status)}>{d.status}</Badge>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-xs text-muted-foreground">
+                  Todos os números do FADA são datados. &quot;Desatualizado&quot; não
+                  significa errado — apenas que vale revisar a fonte antes de decidir.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </>
       ) : null}
     </div>

@@ -1174,6 +1174,15 @@ export interface SystemStatus {
   model: { status: string; path: string };
   calibration_report: { present: boolean };
   counts: Record<string, number>;
+  data_sources?: DataSourceHealth[];
+}
+
+export interface DataSourceHealth {
+  label: string;
+  source: string | null;
+  fetched_at: string | null;
+  age_days: number | null;
+  status: "atual" | "desatualizado" | "ausente" | "ok";
 }
 
 export interface FarmDashboard {
