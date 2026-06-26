@@ -213,6 +213,7 @@ export interface AgronomicFactor {
   question: string;
   rationale: string;
   confidence: string;
+  essential?: boolean;
   explanation?: string | null;
   sources?: string[];
   options: AgronomicFactorOption[];
@@ -264,6 +265,7 @@ export interface AgronomicEstimate {
     rationale: string;
     confidence: string;
   }[];
+  narrative?: string | null;
   water_sensitivity_note?: string | null;
   climatic_risks: ClimaticRisk[];
   data_sources: string[];

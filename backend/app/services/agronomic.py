@@ -19,6 +19,8 @@ from app.domain.agronomy import (
     scenario_multipliers,
     water_sensitivity_note,
 )
+from app.domain.agronomy.profile import ESSENTIAL_FACTORS
+from app.domain.narrative import narrate_estimate
 from app.services.regional_intelligence import RegionalIntelligenceService
 
 _DISCLAIMER = (
@@ -48,6 +50,7 @@ class AgronomicService:
                 "question": f.question,
                 "rationale": f.rationale,
                 "confidence": f.confidence,
+                "essential": f.key in ESSENTIAL_FACTORS,
                 "explanation": entry.explanation if entry else None,
                 "sources": list(entry.sources) if entry else [],
                 "options": [
@@ -55,6 +58,8 @@ class AgronomicService:
                     for v, o in f.options.items()
                 ],
             })
+        # Essenciais primeiro (Perfil Rápido) — facilita a UI.
+        out.sort(key=lambda d: (not d["essential"]))
         return out
 
     def knowledge_guide(self) -> list[dict]:
@@ -81,7 +86,7 @@ class AgronomicService:
             scenario_multipliers=scenario_multipliers(profile),
         )
         recs = recommendations(profile, est.personalized_point_sc_ha)
-        return {
+        payload = {
             "municipality": reg["municipality"],
             "municipality_code": reg["municipality_code"],
             "crop": crop,
@@ -111,3 +116,5 @@ class AgronomicService:
             "data_sources": reg["data_sources"] + ["Perfil Agronômico FADA (ajuste a priori)"],
             "disclaimer": _DISCLAIMER,
         }
+        payload["narrative"] = narrate_estimate(payload)
+        return payload

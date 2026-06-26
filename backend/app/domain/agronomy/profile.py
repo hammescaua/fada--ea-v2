@@ -152,6 +152,14 @@ class UnknownFactor(ValueError):
     pass
 
 
+# Fatores essenciais do "Perfil Rápido" — os de maior impacto/decisão, para o
+# produtor responder pouco. Os demais assumem o nível típico até serem preenchidos.
+ESSENTIAL_FACTORS: frozenset[str] = frozenset({
+    "janela_plantio", "fungicida", "inoculacao", "acidez_corrigida",
+    "textura_solo", "fertilidade_p", "cultivar", "manejo_pragas",
+})
+
+
 def planting_window_class(within_zarc: bool, risk_level: int | None) -> str:
     """Mapeia a avaliação ZARC de uma data para o fator 'janela_plantio'.
 

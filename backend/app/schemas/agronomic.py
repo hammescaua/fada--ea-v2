@@ -16,6 +16,7 @@ class FactorOut(BaseModel):
     question: str
     rationale: str
     confidence: str
+    essential: bool = False
     explanation: str | None = None
     sources: list[str] = []
     options: list[FactorOptionOut]
@@ -123,6 +124,7 @@ class AgronomicEstimateResponse(BaseModel):
     personalized: PersonalizedBlock
     adjustment: AdjustmentBlock
     recommendations: list[RecommendationOut]
+    narrative: str | None = None
     water_sensitivity_note: str | None = None
     climatic_risks: list[dict]
     data_sources: list[str]

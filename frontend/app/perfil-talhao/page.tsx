@@ -91,6 +91,8 @@ export default function PerfilTalhaoPage() {
     },
   });
 
+  const [quickMode, setQuickMode] = React.useState(true);
+
   // Pré-preenchimento por análise de solo (CQFS) → mescla fatores no perfil.
   const [soil, setSoil] = React.useState<Record<string, string>>({});
   const [soilNotes, setSoilNotes] = React.useState<SoilAnalysisResult | null>(null);
@@ -301,15 +303,39 @@ export default function PerfilTalhaoPage() {
 
       {/* QUESTIONÁRIO PADRONIZADO */}
       <Card>
-        <CardHeader>
-          <CardTitle>Perfil agronômico padronizado</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>Perfil agronômico</CardTitle>
+          <div className="flex rounded-md border border-border text-xs">
+            <button
+              type="button"
+              onClick={() => setQuickMode(true)}
+              className={"rounded-l-md px-3 py-1 " + (quickMode ? "bg-brand-600 text-white" : "text-muted-foreground")}
+            >
+              Rápido
+            </button>
+            <button
+              type="button"
+              onClick={() => setQuickMode(false)}
+              className={"rounded-r-md px-3 py-1 " + (!quickMode ? "bg-brand-600 text-white" : "text-muted-foreground")}
+            >
+              Completo
+            </button>
+          </div>
         </CardHeader>
         <CardContent>
+          {quickMode && (
+            <p className="mb-3 text-xs text-muted-foreground">
+              Modo rápido: responda só o essencial (o que mais pesa). O resto assume o
+              nível típico — depois você pode abrir o modo completo.
+            </p>
+          )}
           {factors.isLoading && <LoadingBlock label="Carregando fatores…" />}
           {factors.isError && <ErrorBlock error={factors.error} />}
           {factors.data && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {factors.data.map((f) => (
+              {factors.data
+                .filter((f) => !quickMode || f.essential)
+                .map((f) => (
                 <div key={f.key} className="space-y-1">
                   <Label htmlFor={f.key}>{f.question}</Label>
                   <Select
@@ -494,6 +520,11 @@ export default function PerfilTalhaoPage() {
             <CardTitle>Sua previsão vs a média regional</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {e.narrative && (
+              <p className="rounded-md bg-brand-50/60 px-3 py-2 text-sm leading-relaxed text-foreground">
+                {e.narrative}
+              </p>
+            )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-lg border border-border bg-muted/30 p-4">
                 <div className="text-xs uppercase text-muted-foreground">Regional (média)</div>
