@@ -422,6 +422,7 @@ export interface SeasonBrief {
         confidence: string;
       }[]
     | null;
+  narrative: string[];
   verdict: string;
   data_sources: string[];
   disclaimer: string;

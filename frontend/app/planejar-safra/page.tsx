@@ -152,13 +152,25 @@ export default function PlanejarSafraPage() {
 
       {b && (
         <div className="space-y-6">
-          {/* VEREDITO — a síntese de decisão */}
+          {/* LEITURA DA SAFRA — explicação em linguagem natural das projeções */}
           <Card className="border-brand-200 bg-brand-50/40">
             <CardHeader>
-              <CardTitle>O plano em uma frase</CardTitle>
+              <CardTitle>Leitura da safra</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-foreground">{b.verdict}</p>
+            <CardContent className="space-y-2">
+              {(b.narrative ?? [b.verdict]).map((p, i) => (
+                <p
+                  key={i}
+                  className={
+                    "text-sm leading-relaxed " +
+                    (i === b.narrative.length - 1
+                      ? "italic text-muted-foreground"
+                      : "text-foreground")
+                  }
+                >
+                  {p}
+                </p>
+              ))}
             </CardContent>
           </Card>
 

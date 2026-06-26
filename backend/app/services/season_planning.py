@@ -18,6 +18,7 @@ from app.domain.agronomy import (
     economic_recommendations,
     scenario_multipliers,
 )
+from app.domain.narrative import narrate_brief
 from app.domain.planning.season import season_margin
 from app.services.benchmark import BenchmarkService, BenchmarkUnavailable
 from app.services.market import MarketService, PriceUnavailable
@@ -135,7 +136,7 @@ class SeasonPlanningService:
             )
             recommendations_block = [vars(r) for r in recs]
 
-        return {
+        out = {
             "municipality": reg["municipality"],
             "municipality_code": code,
             "crop": crop,
@@ -157,6 +158,9 @@ class SeasonPlanningService:
                 "preço é observado (não previsto); custo é referência regional CONAB."
             ),
         }
+        # Leitura em linguagem natural das projeções (fundamentada nos números acima).
+        out["narrative"] = narrate_brief(out)
+        return out
 
     # -- seções opcionais (degradação graciosa) -----------------------------
 
