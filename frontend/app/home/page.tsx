@@ -11,6 +11,7 @@ import {
 } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { ConfidenceBadge } from "@/components/confidence-badge";
+import { JourneyGuide } from "@/components/journey";
 import { ErrorBlock, LoadingBlock } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,6 +130,9 @@ export default function HomePage() {
       />
 
       <ConfidenceBadge />
+
+      {/* Próximo passo — guia adaptativo da jornada (resolve "o que faço agora?") */}
+      <JourneyGuide farmId={farmId} hasFarms={hasFarms} />
 
       {/* Previsão & alertas (proativo) — só aparece quando há fazenda selecionada */}
       {farmId !== null && weather.data && weather.data.alerts.length > 0 && (
