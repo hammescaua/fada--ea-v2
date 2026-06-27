@@ -93,6 +93,14 @@ export default function SystemPage() {
                   {query.data.calibration_report.present ? "presente" : "ausente"}
                 </Badge>
               </div>
+              {query.data.llm && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Explicação (LLM)</span>
+                  <Badge variant={query.data.llm.active ? "success" : "secondary"}>
+                    {query.data.llm.label}
+                  </Badge>
+                </div>
+              )}
             </CardContent>
           </Card>
 

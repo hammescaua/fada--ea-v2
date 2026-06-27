@@ -1183,6 +1183,7 @@ export interface SystemStatus {
   calibration_report: { present: boolean };
   counts: Record<string, number>;
   data_sources?: DataSourceHealth[];
+  llm?: { provider: string; label: string; active: boolean };
 }
 
 export interface DataSourceHealth {

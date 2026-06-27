@@ -2,17 +2,26 @@
 
 Dois explainers intercambiáveis:
 - ``TemplateExplainer``: determinístico, offline, sem dependências externas.
-- ``ClaudeExplainer``: usa a API Anthropic quando há chave configurada.
+- ``LLMExplainer``: usa o LLM ativo (gratuito ou Anthropic) quando há chave.
 
 Ambos recebem **apenas números já calculados pelo domínio** e os verbalizam. O LLM
-não produz nem altera nenhum valor (ADR-0002).
+não produz nem altera nenhum valor (ADR-0002). Sem provedor (ou em erro), cai no
+template determinístico.
 """
 
 from __future__ import annotations
 
+import json
 from typing import Protocol
 
 from app.core.config import settings
+from app.engine.llm_client import chat
+
+_SYSTEM = (
+    "Você é um agrônomo explicando uma estimativa de produtividade a um agricultor "
+    "brasileiro. Use linguagem clara e direta. NÃO invente nem altere nenhum número "
+    "— use exclusivamente os valores fornecidos no JSON. Seja conciso (até ~6 frases)."
+)
 
 
 class Explainer(Protocol):
@@ -45,43 +54,18 @@ class TemplateExplainer:
         )
 
 
-class ClaudeExplainer:
-    """Usa a API Anthropic (Claude) para uma explicação mais fluida.
+class LLMExplainer:
+    """Verbaliza via LLM ativo (gratuito/Anthropic); cai no template em erro."""
 
-    Só é instanciado quando há ``ANTHROPIC_API_KEY``. Importa o SDK preguiçosamente
-    para não pesar no runtime padrão. Cai no template em caso de erro.
-    """
-
-    def __init__(self, api_key: str, model: str) -> None:
-        self._api_key = api_key
-        self._model = model
+    def __init__(self) -> None:
         self._fallback = TemplateExplainer()
 
     def explain(self, payload: dict) -> str:
-        try:
-            import anthropic  # import tardio (extra opcional [llm])
-
-            client = anthropic.Anthropic(api_key=self._api_key)
-            system = (
-                "Você é um agrônomo explicando uma estimativa de produtividade a um "
-                "agricultor brasileiro. Use linguagem clara e direta. NÃO invente nem "
-                "altere nenhum número — use exclusivamente os valores fornecidos no JSON. "
-                "Seja conciso (até ~6 frases)."
-            )
-            import json as _json
-
-            msg = client.messages.create(
-                model=self._model,
-                max_tokens=500,
-                system=system,
-                messages=[{"role": "user", "content": _json.dumps(payload, ensure_ascii=False)}],
-            )
-            return msg.content[0].text
-        except Exception:  # noqa: BLE001 — degrada para o template determinístico
-            return self._fallback.explain(payload)
+        text = chat(_SYSTEM, json.dumps(payload, ensure_ascii=False))
+        return text or self._fallback.explain(payload)
 
 
 def build_explainer() -> Explainer:
-    if settings.anthropic_api_key:
-        return ClaudeExplainer(settings.anthropic_api_key, settings.llm_orchestrator_model)
+    if settings.llm_provider != "none":
+        return LLMExplainer()
     return TemplateExplainer()

@@ -21,6 +21,7 @@ from app.domain.agronomy import (
 )
 from app.domain.agronomy.profile import ESSENTIAL_FACTORS
 from app.domain.narrative import narrate_estimate
+from app.engine.llm_client import refine_narrative
 from app.services.regional_intelligence import RegionalIntelligenceService
 
 _DISCLAIMER = (
@@ -116,5 +117,7 @@ class AgronomicService:
             "data_sources": reg["data_sources"] + ["Perfil Agronômico FADA (ajuste a priori)"],
             "disclaimer": _DISCLAIMER,
         }
-        payload["narrative"] = narrate_estimate(payload)
+        # Narrativa determinística (sempre); o LLM (se houver) só a deixa mais fluida,
+        # sem tocar nos números (ADR-0002/0029). Sem chave, fica idêntica.
+        payload["narrative"] = refine_narrative(narrate_estimate(payload))
         return payload

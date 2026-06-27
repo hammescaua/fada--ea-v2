@@ -34,6 +34,7 @@ A Início mostra **um único próximo passo** conforme o estado do produtor:
 | Camada de conhecimento citável ("o porquê") | base curada com fontes (fundação de RAG) | 0027 |
 | Solo automático pela localização (EMBRAPA) | mapa SiBCS → ordem dominante → fatores sugeridos | 0028 |
 | Explicação em linguagem natural das projeções | narração determinística, ancorada no número | — |
+| LLM **gratuito** para reescrever a explicação (offline-first) | endpoint OpenAI-compatible (Groq free tier), degrada para determinístico | 0029 |
 | Cartão de decisão unificado (clima/manejo/histórico) | efeito sempre `[baixo, ponto, alto]` | 0024 |
 | Honestidade visível (frescor das fontes) | idade + status por fonte em Sistema | 0018 |
 
@@ -57,8 +58,9 @@ A Início mostra **um único próximo passo** conforme o estado do produtor:
 
 ## Próximos passos (pós-V2, opcionais)
 
-- **LLM completo** (ativa quando `FADA_ANTHROPIC_API_KEY` existe): RAG sobre a base
-  citável + captura por voz/foto. Regra dura do ADR-0002 mantida.
+- **LLM gratuito ativável** (ADR-0029): defina `FADA_FREE_LLM_API_KEY` (chave grátis
+  Groq) para explicações mais fluidas; RAG sobre a base citável (ADR-0027) + captura
+  por voz/foto são o passo seguinte. Regra dura do ADR-0002 mantida.
 - **Atualização agendada** dos artefatos públicos (preço/custo/ZARC).
 - **Fundamentos de produção**: migrações Alembic, auth/LGPD, cache de briefs.
 - **Solo de maior resolução** (SoilGrids/levantamentos estaduais) cruzado com o

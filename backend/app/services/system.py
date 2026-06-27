@@ -30,6 +30,21 @@ def system_status(session: Session) -> dict:
         "calibration_report": {"present": REPORT_PATH.exists()},
         "counts": counts,
         "data_sources": data_sources_health(),
+        "llm": _llm_status(),
+    }
+
+
+def _llm_status() -> dict:
+    provider = settings.llm_provider
+    labels = {
+        "free": f"gratuito ({settings.free_llm_model})",
+        "anthropic": f"Anthropic ({settings.llm_orchestrator_model})",
+        "none": "determinístico (sem LLM)",
+    }
+    return {
+        "provider": provider,
+        "label": labels[provider],
+        "active": provider != "none",
     }
 
 
