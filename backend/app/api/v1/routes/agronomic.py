@@ -32,8 +32,11 @@ from app.schemas.agronomic import (
     SoilAnalysisResponse,
     SoilClassificationNote,
 )
+from app.schemas.multiseason import MultiSeasonResponse
 from app.services.agronomic import AgronomicService
 from app.services.field_learning import FieldLearningService, FieldNotFound
+from app.services.multiseason import FieldNotFound as MultiSeasonFieldNotFound
+from app.services.multiseason import MultiSeasonService
 from app.services.regional_intelligence import (
     CropNotSupported,
     InvalidSeason,
@@ -198,6 +201,48 @@ def field_soil_suggestion_endpoint(
         "source": sug.get("source"),
         "note": sug.get("note"),
     }
+
+
+@router.get("/fields/{field_id}/multi-season", response_model=MultiSeasonResponse)
+def field_multi_season_endpoint(
+    field_id: int,
+    n: int = Query(3, ge=1, le=6, description="Quantas safras projetar"),
+    base_season: str = Query("2026/27"),
+    crop: str = Query("soja"),
+    uf: str = Query("RS"),
+    price_per_bag: float | None = Query(None, description="Preço (R$/sc); senão CEPEA"),
+    cost_per_ha: float | None = Query(None, description="Custo (R$/ha); senão CONAB"),
+    price_trend_pct: float = Query(0.0, description="Tendência anual do preço (%)"),
+    cost_trend_pct: float = Query(0.0, description="Tendência anual do custo (%)"),
+    session: Session = Depends(get_session),
+    svc: AgronomicService = Depends(get_agronomic_service),
+) -> MultiSeasonResponse:
+    """Projeta N safras de soja: produtividade (safra típica) × rentabilidade."""
+    service = MultiSeasonService(
+        farms=FarmRepository(session),
+        profiles=AgronomicProfileRepository(session),
+        agronomic=svc,
+        model=_model(),
+    )
+    try:
+        data = service.project(
+            field_id,
+            n_seasons=n,
+            base_season=base_season,
+            crop=crop,
+            uf=uf,
+            price_per_bag=price_per_bag,
+            cost_per_ha=cost_per_ha,
+            price_trend_pct=price_trend_pct,
+            cost_trend_pct=cost_trend_pct,
+        )
+    except MultiSeasonFieldNotFound as exc:
+        raise HTTPException(404, f"Talhão {exc} inexistente ou fora da região.") from exc
+    except (CropNotSupported, InvalidSeason) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    except MunicipalityNotInRegion as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return MultiSeasonResponse(**data)
 
 
 @router.get("/crop-cycles/{cycle_id}/manejo", response_model=AgronomicProfileResponse)

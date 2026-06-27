@@ -38,6 +38,7 @@ A Início mostra **um único próximo passo** conforme o estado do produtor:
 | Cartão de decisão unificado (clima/manejo/histórico) | efeito sempre `[baixo, ponto, alto]` | 0024 |
 | Honestidade visível (frescor das fontes) | idade + status por fonte em Sistema | 0018 |
 | Crédito rural (Plano Safra) + decisão de 2ª safra | simulador Price/SAC + comparação de margem/ha | 0030 |
+| Projeção plurianual (produtividade × rentabilidade) | N safras lado a lado, safra típica + hipóteses de preço/custo | 0031 |
 
 ## Pilares de engenharia (mantidos da V1)
 

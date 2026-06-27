@@ -32,6 +32,7 @@ function levelVariant(level: string): BadgeProps["variant"] {
 
 const MORE_TOOLS = [
   { href: "/perfil-talhao", label: "Meu Talhão — previsão e o que fazer" },
+  { href: "/projecao", label: "Projeção de Safras — produtividade × lucro à frente" },
   { href: "/planejar-safra", label: "Planejar Safra — margem e quando plantar" },
   { href: "/decisoes", label: "Onde olhar primeiro" },
   { href: "/financeiro", label: "Financeiro" },

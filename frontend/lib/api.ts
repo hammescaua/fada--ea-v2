@@ -323,6 +323,51 @@ export interface CompareCropsResult {
   disclaimer: string;
 }
 
+// Projeção plurianual (ADR-0031)
+export interface ScenarioEconomics {
+  name: string;
+  yield_sc_ha: number;
+  price_per_bag: number;
+  revenue_per_ha: number;
+  profit_per_ha: number;
+  margin_pct: number;
+}
+
+export interface SeasonProjection {
+  season: string;
+  year_index: number;
+  price_per_bag: number;
+  cost_per_ha: number;
+  expected_profit_per_ha: number;
+  scenarios: ScenarioEconomics[];
+}
+
+export interface MultiSeasonProjection {
+  field_id: number;
+  field_name: string;
+  municipality: string;
+  crop: string;
+  area_ha: number;
+  productivity: {
+    point_sc_ha: number;
+    interval_sc_ha: number[];
+    scenarios: { name: string; yield_sc_ha: number }[];
+    note: string;
+  };
+  assumptions: {
+    price_per_bag: number;
+    price_source?: string | null;
+    cost_per_ha: number;
+    cost_source?: string | null;
+    price_trend_pct: number;
+    cost_trend_pct: number;
+  };
+  seasons: SeasonProjection[];
+  data_sources: string[];
+  narrative?: string | null;
+  disclaimer: string;
+}
+
 export interface ProfileCompleteness {
   filled: string[];
   missing: string[];
@@ -1355,6 +1400,26 @@ export const api = {
     const q = new URLSearchParams({ municipality, crop: "soja", uf: "RS", season });
     if (pricePerBag) q.set("price_per_bag", String(pricePerBag));
     return get<SeasonBrief>(`/planning/season-brief?${q.toString()}`);
+  },
+
+  getMultiSeason: (
+    fieldId: number,
+    opts: {
+      n?: number;
+      price_per_bag?: number;
+      cost_per_ha?: number;
+      price_trend_pct?: number;
+      cost_trend_pct?: number;
+    } = {}
+  ) => {
+    const q = new URLSearchParams();
+    if (opts.n) q.set("n", String(opts.n));
+    if (opts.price_per_bag != null) q.set("price_per_bag", String(opts.price_per_bag));
+    if (opts.cost_per_ha != null) q.set("cost_per_ha", String(opts.cost_per_ha));
+    if (opts.price_trend_pct != null) q.set("price_trend_pct", String(opts.price_trend_pct));
+    if (opts.cost_trend_pct != null) q.set("cost_trend_pct", String(opts.cost_trend_pct));
+    const qs = q.toString();
+    return get<MultiSeasonProjection>(`/fields/${fieldId}/multi-season${qs ? `?${qs}` : ""}`);
   },
 
   getCreditLines: () => get<CreditCatalog>("/credit/lines"),

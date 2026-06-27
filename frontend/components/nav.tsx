@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const primary = [
   { href: "/home", label: "Início" },
   { href: "/perfil-talhao", label: "Meu Talhão" },
+  { href: "/projecao", label: "Projeção de Safras" },
   { href: "/planejar-safra", label: "Planejar Safra" },
   { href: "/safra", label: "Minha Lavoura" },
   { href: "/assistant", label: "Assistente" },
