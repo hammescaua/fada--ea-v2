@@ -1,40 +1,99 @@
 {
-  "source": "Plano Safra (MAPA) e Manual de Crédito Rural (Bacen/MCR)",
-  "fetched_at": "2026-06-26",
+  "source": "Plano Safra 2025/2026 (MAPA/MDA) e Manual de Crédito Rural (Bacen/MCR)",
+  "fetched_at": "2026-06-27",
   "safra": "2025/2026",
-  "note": "Linhas e taxas de REFERÊNCIA, para orientar a simulação. Condições, taxas, limites e enquadramento variam por safra, público e instituição — CONFIRME sempre com seu agente financeiro/cooperativa antes de decidir. O FADA não concede crédito.",
+  "vigencia": "01/07/2025 a 30/06/2026",
+  "note": "Taxas e limites de REFERÊNCIA do Plano Safra 2025/2026 (vigente até 30/06/2026; o Plano 2026/2027 deve ser anunciado em 1º de julho de 2026). Condições reais variam por linha, público, enquadramento e instituição — CONFIRME sempre com seu banco/cooperativa antes de decidir. Há desconto de 0,5 p.p. no custeio de Pronamp e demais produtores que investirem em práticas sustentáveis. O FADA não concede crédito.",
   "lines": [
     {
       "key": "pronaf_custeio",
       "name": "Pronaf — Custeio",
       "purpose": "custeio",
       "audience": "Agricultura familiar (DAP/CAF)",
-      "ref_rate_pct_year": [4.0, 6.0],
-      "note": "Taxas controladas, entre as mais baixas; sujeito a enquadramento."
+      "ref_rate_pct_year": [2.0, 4.0],
+      "limit": "Limites por mutuário definidos no MCR (variam por linha do Pronaf).",
+      "note": "Menores taxas: ~2% (agroecologia/orgânicos/sociobio) a ~4% conforme a linha."
+    },
+    {
+      "key": "pronaf_investimento",
+      "name": "Pronaf — Investimento",
+      "purpose": "investimento",
+      "audience": "Agricultura familiar (DAP/CAF)",
+      "ref_rate_pct_year": [3.0, 5.0],
+      "limit": "Conforme a linha (Mais Alimentos, Floresta, Bioeconomia, etc.).",
+      "note": "~3% em linhas prioritárias; prazos mais longos que o custeio."
     },
     {
       "key": "pronamp_custeio",
-      "name": "Pronamp — Custeio",
+      "name": "Pronamp — Custeio/Comercialização",
       "purpose": "custeio",
-      "audience": "Médio produtor",
-      "ref_rate_pct_year": [7.0, 8.5],
-      "note": "Faixa intermediária; exige enquadramento como médio produtor."
+      "audience": "Médio produtor (enquadramento Pronamp)",
+      "ref_rate_pct_year": [10.0, 10.0],
+      "limit": "Teto de custeio definido no MCR para o Pronamp.",
+      "note": "10% a.a. em 2025/26 (era 8,5% em 2024/25). -0,5 p.p. se sustentável."
+    },
+    {
+      "key": "pronamp_investimento",
+      "name": "Pronamp — Investimento",
+      "purpose": "investimento",
+      "audience": "Médio produtor (enquadramento Pronamp)",
+      "ref_rate_pct_year": [10.0, 10.0],
+      "limit": "Conforme programa de investimento enquadrável.",
+      "note": "10% a.a. em 2025/26."
     },
     {
       "key": "custeio_demais",
       "name": "Custeio — demais produtores",
       "purpose": "custeio",
-      "audience": "Demais produtores (taxa controlada)",
-      "ref_rate_pct_year": [10.0, 12.0],
-      "note": "Recursos controlados; acima disso, recursos livres a taxa de mercado."
+      "audience": "Demais produtores (recursos controlados)",
+      "ref_rate_pct_year": [12.5, 14.0],
+      "limit": "Teto com recursos controlados; acima disso, recursos livres a taxa de mercado.",
+      "note": "Faixa reportada para 2025/26; confirme a taxa exata. -0,5 p.p. se sustentável."
     },
     {
-      "key": "investimento",
-      "name": "Investimento (máquinas, estrutura, solo)",
+      "key": "investimento_empresarial",
+      "name": "Investimento — empresarial (demais)",
       "purpose": "investimento",
-      "audience": "Vários (Moderfrota, Inovagro, ABC+, Pronamp Invest.)",
-      "ref_rate_pct_year": [8.5, 12.5],
-      "note": "Prazos mais longos; linha varia conforme a finalidade do investimento."
+      "audience": "Demais produtores",
+      "ref_rate_pct_year": [12.5, 12.5],
+      "limit": "Conforme o programa de investimento.",
+      "note": "Taxa geral de investimento empresarial em 2025/26 (~12,5%)."
+    },
+    {
+      "key": "moderfrota",
+      "name": "Moderfrota (máquinas e equipamentos)",
+      "purpose": "investimento",
+      "audience": "Produtores e cooperativas",
+      "ref_rate_pct_year": [13.5, 13.5],
+      "limit": "Conforme valor do bem financiado.",
+      "note": "13,5% a.a. em 2025/26 (era 11,5%). Tratores, colhedoras, etc."
+    },
+    {
+      "key": "renovagro",
+      "name": "RenovAgro / ABC+ (sustentável)",
+      "purpose": "investimento",
+      "audience": "Produtores e cooperativas",
+      "ref_rate_pct_year": [10.0, 10.0],
+      "limit": "Conforme projeto sustentável (recuperação de solo, ILPF, etc.).",
+      "note": "10% a.a. Práticas de baixa emissão de carbono / recuperação produtiva."
+    },
+    {
+      "key": "pca",
+      "name": "PCA (armazenagem)",
+      "purpose": "investimento",
+      "audience": "Produtores e cooperativas",
+      "ref_rate_pct_year": [10.0, 10.0],
+      "limit": "Conforme capacidade de armazenagem do projeto.",
+      "note": "10% a.a. Construção/ampliação de armazéns na fazenda."
+    },
+    {
+      "key": "proirriga",
+      "name": "Proirriga (irrigação)",
+      "purpose": "investimento",
+      "audience": "Produtores e cooperativas",
+      "ref_rate_pct_year": [12.5, 12.5],
+      "limit": "Conforme projeto de irrigação.",
+      "note": "12,5% a.a. em 2025/26."
     }
   ]
 }

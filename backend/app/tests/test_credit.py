@@ -46,6 +46,8 @@ def test_compare_options_ranks_by_margin():
     assert res[0].name == "Trigo" and res[0].rank == 1
     assert res[-1].name == "Cobertura"
     assert res[0].margin_per_ha == 1200.0
+    assert res[0].delta_vs_best_per_ha == 0.0
+    assert res[1].delta_vs_best_per_ha == -200.0  # Milho: 1000 - 1200
 
 
 def test_simulate_endpoint():
@@ -57,6 +59,17 @@ def test_simulate_endpoint():
     body = r.json()
     assert body["total_interest"] > 0
     assert "não concede crédito" in body["disclaimer"]
+
+
+def test_simulate_endpoint_with_area_returns_per_ha():
+    r = client.post(
+        "/api/v1/credit/simulate",
+        json={"principal": 300000, "annual_rate_pct": 10, "term_months": 12, "area_ha": 100},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["principal_per_ha"] == 3000.0
+    assert body["total_interest_per_ha"] > 0
 
 
 def test_compare_endpoint():

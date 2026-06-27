@@ -279,6 +279,7 @@ export interface CreditLine {
   purpose: string;
   audience: string;
   ref_rate_pct_year: number[];
+  limit?: string | null;
   note?: string | null;
 }
 
@@ -286,6 +287,7 @@ export interface CreditCatalog {
   source?: string | null;
   fetched_at?: string | null;
   safra?: string | null;
+  vigencia?: string | null;
   note?: string | null;
   lines: CreditLine[];
 }
@@ -300,6 +302,8 @@ export interface FinancingResult {
   total_paid: number;
   total_interest: number;
   interest_over_principal_pct: number;
+  principal_per_ha?: number | null;
+  total_interest_per_ha?: number | null;
   disclaimer: string;
 }
 
@@ -310,6 +314,7 @@ export interface CropMargin {
   margin_per_ha: number;
   break_even_sc_ha: number | null;
   rank: number;
+  delta_vs_best_per_ha: number;
 }
 
 export interface CompareCropsResult {
@@ -1359,6 +1364,7 @@ export const api = {
     annual_rate_pct: number;
     term_months: number;
     system: string;
+    area_ha?: number;
   }) => post<typeof body, FinancingResult>("/credit/simulate", body),
 
   compareCrops: (

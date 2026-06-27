@@ -38,6 +38,7 @@ export default function CreditoPage() {
   const [rate, setRate] = React.useState("");
   const [term, setTerm] = React.useState("12");
   const [system, setSystem] = React.useState("price");
+  const [area, setArea] = React.useState("");
   const sim = useMutation<FinancingResult>({
     mutationFn: () =>
       api.simulateFinancing({
@@ -45,6 +46,7 @@ export default function CreditoPage() {
         annual_rate_pct: Number(rate),
         term_months: Number(term),
         system,
+        area_ha: area ? Number(area) : undefined,
       }),
   });
 
@@ -131,6 +133,17 @@ export default function CreditoPage() {
                 <option value="sac">SAC (decrescente)</option>
               </Select>
             </div>
+            <div className="space-y-1">
+              <Label htmlFor="area">Área (ha, opcional)</Label>
+              <Input
+                id="area"
+                type="number"
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                placeholder="p/ R$/ha"
+                className="w-28"
+              />
+            </div>
             <Button type="submit" disabled={sim.isPending}>
               {sim.isPending ? "Calculando…" : "Simular"}
             </Button>
@@ -162,8 +175,49 @@ export default function CreditoPage() {
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Fonte: {lines.data.source} · {lines.data.fetched_at}
-                {lines.data.safra ? ` · safra ${lines.data.safra}` : ""}.
+                {lines.data.safra ? ` · safra ${lines.data.safra}` : ""}
+                {lines.data.vigencia ? ` · vigência ${lines.data.vigencia}` : ""}.
               </p>
+              <details className="text-xs">
+                <summary className="cursor-pointer text-brand-700">
+                  Ver linhas, taxas e limites de referência
+                </summary>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border text-left text-muted-foreground">
+                        <th className="py-1.5 pr-3">Linha</th>
+                        <th className="py-1.5 pr-3">Finalidade</th>
+                        <th className="py-1.5 pr-3">Taxa ref. (% a.a.)</th>
+                        <th className="py-1.5 pr-3">Público / limite</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lines.data.lines.map((ln) => (
+                        <tr key={ln.key} className="border-b border-border last:border-0 align-top">
+                          <td className="py-1.5 pr-3 font-medium">{ln.name}</td>
+                          <td className="py-1.5 pr-3 capitalize">{ln.purpose}</td>
+                          <td className="py-1.5 pr-3 tabular-nums">
+                            {ln.ref_rate_pct_year[0] === ln.ref_rate_pct_year[1]
+                              ? `${ln.ref_rate_pct_year[0]}`
+                              : `${ln.ref_rate_pct_year[0]}–${ln.ref_rate_pct_year[1]}`}
+                          </td>
+                          <td className="py-1.5 pr-3 text-muted-foreground">
+                            {ln.audience}
+                            {ln.limit ? ` · ${ln.limit}` : ""}
+                            {ln.note ? ` — ${ln.note}` : ""}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+              {lines.data.note && (
+                <p className="rounded-md bg-amber-50 p-2 text-[11px] text-amber-900">
+                  {lines.data.note}
+                </p>
+              )}
             </div>
           )}
 
@@ -184,6 +238,12 @@ export default function CreditoPage() {
                   label="Juros sobre o valor"
                   value={`${sim.data.interest_over_principal_pct}%`}
                 />
+                {sim.data.principal_per_ha != null && (
+                  <Stat label="Financiado por ha" value={formatBRL(sim.data.principal_per_ha)} />
+                )}
+                {sim.data.total_interest_per_ha != null && (
+                  <Stat label="Juros por ha" value={formatBRL(sim.data.total_interest_per_ha)} />
+                )}
               </div>
               <p className="text-xs text-muted-foreground">{sim.data.disclaimer}</p>
             </div>
@@ -284,6 +344,7 @@ export default function CreditoPage() {
                       <th className="py-2 pr-3">Receita/ha</th>
                       <th className="py-2 pr-3">Custo/ha</th>
                       <th className="py-2 pr-3">Margem/ha</th>
+                      <th className="py-2 pr-3">vs. 1º</th>
                       <th className="py-2 pr-3">Empata em</th>
                     </tr>
                   </thead>
@@ -303,6 +364,9 @@ export default function CreditoPage() {
                           }
                         >
                           {formatBRL(o.margin_per_ha)}
+                        </td>
+                        <td className="py-2 pr-3 tabular-nums text-muted-foreground">
+                          {o.rank === 1 ? "—" : formatBRL(o.delta_vs_best_per_ha)}
                         </td>
                         <td className="py-2 pr-3 tabular-nums text-muted-foreground">
                           {o.break_even_sc_ha !== null ? `${o.break_even_sc_ha} sc/ha` : "—"}

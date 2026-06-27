@@ -49,7 +49,15 @@ def credit_simulate_endpoint(body: FinancingRequest) -> FinancingResponse:
         )
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
-    return FinancingResponse(**vars(s), disclaimer=_FIN_DISCLAIMER)
+    per_ha = (
+        {
+            "principal_per_ha": round(s.principal / body.area_ha, 2),
+            "total_interest_per_ha": round(s.total_interest / body.area_ha, 2),
+        }
+        if body.area_ha
+        else {}
+    )
+    return FinancingResponse(**vars(s), **per_ha, disclaimer=_FIN_DISCLAIMER)
 
 
 @router.post("/credit/compare-crops", response_model=CompareCropsResponse)

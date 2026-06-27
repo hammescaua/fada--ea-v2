@@ -27,6 +27,7 @@ class CropMargin:
     margin_per_ha: float
     break_even_sc_ha: float | None
     rank: int
+    delta_vs_best_per_ha: float  # 0 para o 1º; negativo para os demais
 
 
 def compare_options(options: list[CropOption]) -> list[CropMargin]:
@@ -50,9 +51,11 @@ def compare_options(options: list[CropOption]) -> list[CropMargin]:
                 margin_per_ha=round(margin, 2),
                 break_even_sc_ha=break_even,
                 rank=0,
+                delta_vs_best_per_ha=0.0,
             )
         )
     ordered = sorted(computed, key=lambda c: c.margin_per_ha, reverse=True)
+    best = ordered[0].margin_per_ha
     return [
         CropMargin(
             name=c.name,
@@ -61,6 +64,7 @@ def compare_options(options: list[CropOption]) -> list[CropMargin]:
             margin_per_ha=c.margin_per_ha,
             break_even_sc_ha=c.break_even_sc_ha,
             rank=idx + 1,
+            delta_vs_best_per_ha=round(c.margin_per_ha - best, 2),
         )
         for idx, c in enumerate(ordered)
     ]

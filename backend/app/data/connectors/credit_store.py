@@ -26,7 +26,7 @@ class CreditStore:
 
     def meta(self) -> dict:
         d = self._data()
-        return {k: d.get(k) for k in ("source", "fetched_at", "safra", "note")}
+        return {k: d.get(k) for k in ("source", "fetched_at", "safra", "vigencia", "note")}
 
     def lines(self) -> list[dict]:
         return list(self._data().get("lines", []))

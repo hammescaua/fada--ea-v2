@@ -18,10 +18,13 @@ Adicionar um domínio financeiro **puro e determinístico** + um catálogo de cr
   compostos; trata 0% (linha subsidiada). Retorna parcela, juros totais, custo total.
 - `domain/finance/rotation.py`: `compare_options(...)` ordena por **margem/ha** as
   opções de 2ª safra a partir de produtividade/preço/custo informados.
-- `data/credit/plano_safra.json`: catálogo **de referência** (Pronaf, Pronamp,
-  custeio demais, investimento) com faixa de taxa, público e finalidade — datado,
-  citado (Plano Safra/MAPA, MCR/Bacen) e com **disclaimer forte**: confirme a taxa
-  vigente; o FADA não concede crédito. Connector `CreditStore` (runtime leve).
+- `data/credit/plano_safra.json`: catálogo **de referência** com as taxas reais
+  pesquisadas do **Plano Safra 2025/2026** (Pronaf custeio 2–4% e investimento ~3–5%;
+  Pronamp 10%; custeio demais ~12,5–14%; investimento empresarial 12,5%; Moderfrota
+  13,5%; RenovAgro/ABC+ e PCA 10%; Proirriga 12,5%), com finalidade, público e
+  **limite** por linha — datado (vigência 01/07/2025–30/06/2026), citado
+  (MAPA/MDA, MCR/Bacen) e com **disclaimer forte**: confirme a taxa vigente; o FADA
+  não concede crédito. Connector `CreditStore` (runtime leve).
 - Rotas: `GET /credit/lines`, `POST /credit/simulate`, `POST /credit/compare-crops`.
 - UI: página **Crédito & 2ª safra** — simulador (taxas de referência clicáveis
   preenchem o campo) + tabela comparativa de margem por hectare.
