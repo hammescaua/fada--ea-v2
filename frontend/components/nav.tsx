@@ -19,6 +19,7 @@ const primary = [
 const advanced = [
   { href: "/decisoes", label: "Onde olhar primeiro" },
   { href: "/financeiro", label: "Financeiro" },
+  { href: "/credito", label: "Crédito & 2ª safra" },
   { href: "/planejamento", label: "Orçamento da safra" },
   { href: "/guia", label: "Guia agronômico" },
   { href: "/", label: "Estimativa da região" },

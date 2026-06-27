@@ -1,0 +1,40 @@
+{
+  "source": "Plano Safra (MAPA) e Manual de Crédito Rural (Bacen/MCR)",
+  "fetched_at": "2026-06-26",
+  "safra": "2025/2026",
+  "note": "Linhas e taxas de REFERÊNCIA, para orientar a simulação. Condições, taxas, limites e enquadramento variam por safra, público e instituição — CONFIRME sempre com seu agente financeiro/cooperativa antes de decidir. O FADA não concede crédito.",
+  "lines": [
+    {
+      "key": "pronaf_custeio",
+      "name": "Pronaf — Custeio",
+      "purpose": "custeio",
+      "audience": "Agricultura familiar (DAP/CAF)",
+      "ref_rate_pct_year": [4.0, 6.0],
+      "note": "Taxas controladas, entre as mais baixas; sujeito a enquadramento."
+    },
+    {
+      "key": "pronamp_custeio",
+      "name": "Pronamp — Custeio",
+      "purpose": "custeio",
+      "audience": "Médio produtor",
+      "ref_rate_pct_year": [7.0, 8.5],
+      "note": "Faixa intermediária; exige enquadramento como médio produtor."
+    },
+    {
+      "key": "custeio_demais",
+      "name": "Custeio — demais produtores",
+      "purpose": "custeio",
+      "audience": "Demais produtores (taxa controlada)",
+      "ref_rate_pct_year": [10.0, 12.0],
+      "note": "Recursos controlados; acima disso, recursos livres a taxa de mercado."
+    },
+    {
+      "key": "investimento",
+      "name": "Investimento (máquinas, estrutura, solo)",
+      "purpose": "investimento",
+      "audience": "Vários (Moderfrota, Inovagro, ABC+, Pronamp Invest.)",
+      "ref_rate_pct_year": [8.5, 12.5],
+      "note": "Prazos mais longos; linha varia conforme a finalidade do investimento."
+    }
+  ]
+}

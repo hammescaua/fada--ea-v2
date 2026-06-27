@@ -272,6 +272,52 @@ export interface AgronomicEstimate {
   disclaimer: string;
 }
 
+// Crédito rural (Plano Safra) e comparação de 2ª safra (ADR-0030)
+export interface CreditLine {
+  key: string;
+  name: string;
+  purpose: string;
+  audience: string;
+  ref_rate_pct_year: number[];
+  note?: string | null;
+}
+
+export interface CreditCatalog {
+  source?: string | null;
+  fetched_at?: string | null;
+  safra?: string | null;
+  note?: string | null;
+  lines: CreditLine[];
+}
+
+export interface FinancingResult {
+  principal: number;
+  annual_rate_pct: number;
+  term_months: number;
+  system: string;
+  first_installment: number;
+  last_installment: number;
+  total_paid: number;
+  total_interest: number;
+  interest_over_principal_pct: number;
+  disclaimer: string;
+}
+
+export interface CropMargin {
+  name: string;
+  revenue_per_ha: number;
+  cost_per_ha: number;
+  margin_per_ha: number;
+  break_even_sc_ha: number | null;
+  rank: number;
+}
+
+export interface CompareCropsResult {
+  options: CropMargin[];
+  best: string;
+  disclaimer: string;
+}
+
 export interface ProfileCompleteness {
   filled: string[];
   missing: string[];
@@ -1305,6 +1351,19 @@ export const api = {
     if (pricePerBag) q.set("price_per_bag", String(pricePerBag));
     return get<SeasonBrief>(`/planning/season-brief?${q.toString()}`);
   },
+
+  getCreditLines: () => get<CreditCatalog>("/credit/lines"),
+
+  simulateFinancing: (body: {
+    principal: number;
+    annual_rate_pct: number;
+    term_months: number;
+    system: string;
+  }) => post<typeof body, FinancingResult>("/credit/simulate", body),
+
+  compareCrops: (
+    options: { name: string; yield_sc_ha: number; price_per_bag: number; cost_per_ha: number }[]
+  ) => post<{ options: typeof options }, CompareCropsResult>("/credit/compare-crops", { options }),
 
   getSeasonBriefForField: (fieldId: number, season = "2026/27", pricePerBag?: number) => {
     const q = new URLSearchParams({

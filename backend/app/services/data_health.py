@@ -19,6 +19,7 @@ _SOURCES: list[tuple[str, str, int]] = [
     ("Custo de produção", "benchmarks/soja_rs_cost.json", 120),
     ("Janela de plantio (ZARC)", "zarc/soja_rs.json", 365),
     ("Solo (EMBRAPA)", "geo/soil_suggestions.json", 3650),
+    ("Crédito (Plano Safra)", "credit/plano_safra.json", 365),
 ]
 
 

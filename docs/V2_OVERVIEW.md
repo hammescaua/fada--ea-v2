@@ -37,6 +37,7 @@ A Início mostra **um único próximo passo** conforme o estado do produtor:
 | LLM **gratuito** para reescrever a explicação (offline-first) | endpoint OpenAI-compatible (Groq free tier), degrada para determinístico | 0029 |
 | Cartão de decisão unificado (clima/manejo/histórico) | efeito sempre `[baixo, ponto, alto]` | 0024 |
 | Honestidade visível (frescor das fontes) | idade + status por fonte em Sistema | 0018 |
+| Crédito rural (Plano Safra) + decisão de 2ª safra | simulador Price/SAC + comparação de margem/ha | 0030 |
 
 ## Pilares de engenharia (mantidos da V1)
 

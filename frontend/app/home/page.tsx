@@ -35,6 +35,7 @@ const MORE_TOOLS = [
   { href: "/planejar-safra", label: "Planejar Safra — margem e quando plantar" },
   { href: "/decisoes", label: "Onde olhar primeiro" },
   { href: "/financeiro", label: "Financeiro" },
+  { href: "/credito", label: "Crédito & 2ª safra" },
   { href: "/guia", label: "Guia agronômico" },
 ];
 

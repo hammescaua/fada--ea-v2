@@ -9,6 +9,7 @@ from app.api.v1.routes import (
     calibration,
     capture,
     cost,
+    credit,
     dashboard,
     decision_cards,
     decisions,
@@ -38,6 +39,7 @@ api_router.include_router(operations.router, tags=["operations"])
 api_router.include_router(capture.router, tags=["quick-capture"])
 api_router.include_router(planning.router, tags=["planning"])
 api_router.include_router(cost.router, tags=["cost"])
+api_router.include_router(credit.router, tags=["credit"])
 api_router.include_router(adaptive.router, tags=["adaptive"])
 api_router.include_router(agronomic.router, tags=["agronomic"])
 api_router.include_router(calibration.router, tags=["calibration"])
